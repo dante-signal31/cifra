@@ -22,19 +22,6 @@ def cipher(text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:
     recovered.
     :return: Ciphered text.
     """
-    # charset_length = len(charset)
-    # ciphered_text = ""
-    # for char in text:
-    #     new_char = char
-    #     normalized_char = char.lower()
-    #     if normalized_char in charset:
-    #         char_position = charset.index(normalized_char)
-    #         new_char_position = (char_position + key) % charset_length
-    #         new_char = charset[new_char_position] \
-    #             if char.islower() \
-    #             else charset[new_char_position].upper()
-    #     ciphered_text = "".join([ciphered_text, new_char])
-    # return ciphered_text
     ciphered_text = _offset_text(text, key, True)
     return ciphered_text
 
@@ -53,22 +40,6 @@ def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> st
     use the same charset or original text won't be properly recovered.
     :return: Deciphered text.
     """
-    # charset_length = len(charset)
-    # deciphered_text = ""
-    # for char in ciphered_tex:
-    #     new_char = char
-    #     normalized_char = char.lower()
-    #     if normalized_char in charset:
-    #         char_position = charset.index(normalized_char)
-    #         offset_position = char_position - key
-    #         new_char_position = offset_position \
-    #             if offset_position >= 0 \
-    #             else charset_length - (abs(offset_position) % charset_length)
-    #         new_char = charset[new_char_position] \
-    #             if char.islower() \
-    #             else charset[new_char_position].upper()
-    #     deciphered_text = "".join([deciphered_text, new_char])
-    # return deciphered_text
     deciphered_text = _offset_text(ciphered_text, key, False)
     return deciphered_text
 
