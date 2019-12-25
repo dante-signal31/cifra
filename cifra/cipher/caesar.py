@@ -60,7 +60,7 @@ def _offset_text(text: str, key: int, advance: bool, charset: str = DEFAULT_CHAR
         new_char = char
         normalized_char = char.lower()
         if normalized_char in charset:
-            char_position = charset.index(normalized_char)
+            # char_position = charset.index(normalized_char)
             # if advance:
             #     new_char_position = (char_position + key) % charset_length
             # else:
