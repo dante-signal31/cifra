@@ -22,7 +22,7 @@ def cipher(text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:
      recovered.
     :return: Ciphered text.
     """
-    ciphered_text = _offset_text(text, key, True)
+    ciphered_text = _offset_text(text, key, True, charset)
     return ciphered_text
 
 
@@ -40,7 +40,7 @@ def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> st
     use the same charset or original text won't be properly recovered.
     :return: Deciphered text.
     """
-    deciphered_text = _offset_text(ciphered_text, key, False)
+    deciphered_text = _offset_text(ciphered_text, key, False, charset)
     return deciphered_text
 
 
@@ -54,20 +54,11 @@ def _offset_text(text: str, key: int, advance: bool, charset: str = DEFAULT_CHAR
     :param charset: Charset to use for substitution.
     :return: Offset text.
     """
-    charset_length = len(charset)
     offset_text = ""
     for char in text:
         new_char = char
         normalized_char = char.lower()
         if normalized_char in charset:
-            # char_position = charset.index(normalized_char)
-            # if advance:
-            #     new_char_position = (char_position + key) % charset_length
-            # else:
-            #     offset_position = char_position - key
-            #     new_char_position = offset_position \
-            #         if offset_position >= 0 \
-            #         else charset_length - (abs(offset_position) % charset_length)
             new_char_position = _get_new_char_position(normalized_char, key, advance, charset)
             new_char = charset[new_char_position] \
                 if char.islower() \
@@ -89,10 +80,10 @@ def _get_new_char_position(char: str, key: int, advance: bool, charset=DEFAULT_C
     """
     charset_length = len(charset)
     char_position = charset.index(char)
+    offset_position = char_position + key if advance else char_position - key
     if advance:
-        new_char_position = (char_position + key) % charset_length
+        new_char_position = offset_position % charset_length
     else:
-        offset_position = char_position - key
         new_char_position = offset_position \
             if offset_position >= 0 \
             else charset_length - (abs(offset_position) % charset_length)
