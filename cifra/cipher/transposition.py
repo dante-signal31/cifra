@@ -22,6 +22,23 @@ def cipher(text: str, key: int) -> str:
     return ciphered_text
 
 
+def decipher(ciphered_text: str, key: int) -> str:
+    """
+    Decipher given text using transposition method.
+
+    :param ciphered_text: Text to be deciphered.
+    :param key: Secret key.
+    :return: Deciphered text.
+    """
+    deciphering_matrix = _init_transposition_matrix(key, ciphered_text, False)
+    populated_deciphering_matrix = _populate_transposition_matrix(key,
+                                                                  ciphered_text,
+                                                                  deciphering_matrix,
+                                                                  False)
+    deciphered_text = _get_transposed_text(key, populated_deciphering_matrix)
+    return deciphered_text
+
+
 def _init_transposition_matrix(key: int, text: str, ciphering: bool = True) -> List[List[str]]:
     """
     Create matrix used to store characters and perform transposition operations.
@@ -111,18 +128,4 @@ def _get_transposed_text(key: int,
     return recovered_text
 
 
-def decipher(ciphered_text: str, key: int) -> str:
-    """
-    Decipher given text using transposition method.
 
-    :param ciphered_text: Text to be deciphered.
-    :param key: Secret key.
-    :return: Deciphered text.
-    """
-    deciphering_matrix = _init_transposition_matrix(key, ciphered_text, False)
-    populated_deciphering_matrix = _populate_transposition_matrix(key,
-                                                                  ciphered_text,
-                                                                  deciphering_matrix,
-                                                                  False)
-    deciphered_text = _get_transposed_text(key, populated_deciphering_matrix)
-    return deciphered_text
