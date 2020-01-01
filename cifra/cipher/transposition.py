@@ -134,6 +134,3 @@ def _get_transposed_text(populated_transposition_matrix: List[List[str]]) -> str
                              for row in populated_transposition_matrix
                              if row[i] is not None])
     return recovered_text
-
-
-
