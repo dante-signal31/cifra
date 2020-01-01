@@ -45,7 +45,7 @@ def _transpose_text(text: str, key: int, ciphering: bool) -> str:
                                                       text,
                                                       matrix,
                                                       ciphering)
-    recovered_text = _get_transposed_text(key, populated_matrix)
+    recovered_text = _get_transposed_text(populated_matrix)
     return recovered_text
 
 
@@ -117,9 +117,7 @@ def _calculate_position(index: int, total_columns: int) -> (int, int):
     return row, column
 
 
-def _get_transposed_text(key: int,
-                         populated_transposition_matrix: List[List[str]],
-                         ciphering: bool = True) -> str:
+def _get_transposed_text(populated_transposition_matrix: List[List[str]]) -> str:
     """
     Get transposed characters from populated transposition matrix.
 
