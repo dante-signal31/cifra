@@ -14,11 +14,7 @@ def cipher(text: str, key: int) -> str:
     :param key: Secret key.
     :return: Ciphered text.
     """
-    transposition_matrix = _init_transposition_matrix(key, text)
-    populated_transposition_matrix = _populate_transposition_matrix(key,
-                                                                    text,
-                                                                    transposition_matrix)
-    ciphered_text = _get_transposed_text(key, populated_transposition_matrix)
+    ciphered_text = _transpose_text(text, key, ciphering=True)
     return ciphered_text
 
 
@@ -30,13 +26,27 @@ def decipher(ciphered_text: str, key: int) -> str:
     :param key: Secret key.
     :return: Deciphered text.
     """
-    deciphering_matrix = _init_transposition_matrix(key, ciphered_text, False)
-    populated_deciphering_matrix = _populate_transposition_matrix(key,
-                                                                  ciphered_text,
-                                                                  deciphering_matrix,
-                                                                  False)
-    deciphered_text = _get_transposed_text(key, populated_deciphering_matrix)
+    deciphered_text = _transpose_text(ciphered_text, key, ciphering=False)
     return deciphered_text
+
+
+def _transpose_text(text: str, key: int, ciphering: bool) -> str:
+    """
+    Transpose given text.
+
+    :param text: Text to transpose.
+    :param key: Key for transposition.
+    :param ciphering: True if we are using transposition for ciphering. False if
+       we are using it for deciphering.
+    :return: Transposed text.
+    """
+    matrix = _init_transposition_matrix(key, text, ciphering)
+    populated_matrix = _populate_transposition_matrix(key,
+                                                      text,
+                                                      matrix,
+                                                      ciphering)
+    recovered_text = _get_transposed_text(key, populated_matrix)
+    return recovered_text
 
 
 def _init_transposition_matrix(key: int, text: str, ciphering: bool = True) -> List[List[str]]:
