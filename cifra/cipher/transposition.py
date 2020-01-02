@@ -185,8 +185,8 @@ def _get_transposed_text(populated_transposition_matrix: List[List[str]]) -> str
     :return: Text cohered by transposition method.
     """
     total_columns = len(populated_transposition_matrix[0])
-    recovered_text = "".join([row[i]
+    recovered_text = "".join((row[i]
                              for i in range(total_columns)
                              for row in populated_transposition_matrix
-                             if row[i] is not None])
+                             if row[i] is not None))
     return recovered_text
