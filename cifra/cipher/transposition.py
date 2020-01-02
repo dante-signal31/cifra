@@ -40,7 +40,7 @@ def _transpose_text(text: str, key: int, ciphering: bool) -> str:
        we are using it for deciphering.
     :return: Transposed text.
     """
-    matrix = _init_transposition_matrix(key, text, ciphering)
+    matrix = _create_transposition_matrix(key, text, ciphering)
     populated_matrix = _populate_transposition_matrix(key,
                                                       text,
                                                       matrix,
@@ -49,8 +49,8 @@ def _transpose_text(text: str, key: int, ciphering: bool) -> str:
     return recovered_text
 
 
-def _init_transposition_matrix(key: int, text: str,
-                               ciphering: bool = True) -> List[List[str]]:
+def _create_transposition_matrix(key: int, text: str,
+                                 ciphering: bool = True) -> List[List[str]]:
     """
     Create matrix used to store characters and perform transposition operations.
 
