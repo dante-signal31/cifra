@@ -176,12 +176,8 @@ def _get_transposed_text(populated_transposition_matrix: List[List[str]]) -> str
     """
     Get transposed characters from populated transposition matrix.
 
-    :param key: Secret key.
     :param populated_transposition_matrix: Transposition matrix with text to
       cipher stored inside it.
-    :param ciphering: If true then we are populating a transposition matrix
-      for ciphering purposes. If false then we are using this function to
-      populate a transposition matrix fro deciphering.
     :return: Text cohered by transposition method.
     """
     total_columns = len(populated_transposition_matrix[0])
