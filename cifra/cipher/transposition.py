@@ -49,30 +49,80 @@ def _transpose_text(text: str, key: int, ciphering: bool) -> str:
     return recovered_text
 
 
-def _init_transposition_matrix(key: int, text: str, ciphering: bool = True) -> List[List[str]]:
+def _init_transposition_matrix(key: int, text: str,
+                               ciphering: bool = True) -> List[List[str]]:
     """
     Create matrix used to store characters and perform transposition operations.
 
     :param key: Secret key used for transposition.
-    :param text: Text to cipher.
+    :param text: Text to transpose.
     :param ciphering: If true then we are populating a transposition matrix
       for ciphering purposes. If false then we are using this function to
-      populate a transposition matrix fro deciphering.
+      populate a transposition matrix from deciphering.
     :return: Transposition matrix in its default state.
     """
-    matrix = []
+    total_rows, total_columns = _get_matrix_dimensions(key, text, ciphering)
+    matrix = _create_matrix(total_rows, total_columns)
+    matrix = _set_remainder_cells(ciphering, matrix, text)
+    return matrix
+
+
+def _get_matrix_dimensions(key: int, text: str, ciphering: bool) -> (int, int):
+    """
+    Get transposition matrix dimensions needed for given text and key.
+
+    :param key: Secret key used for transposition.
+    :param text: Text to transpose.
+    :param ciphering: If true then we are populating a transposition matrix
+      for ciphering purposes. If false then we are using this function to
+      populate a transposition matrix from deciphering.
+    :return: A tuple with matrix dimensions with format (rows, columns)
+    """
     text_length = len(text)
     total_rows = math.ceil(text_length / key) if ciphering else key
     total_columns = key if ciphering else math.ceil(len(text) / key)
-    blank_row = [""] * total_columns
-    for i in range(total_rows):
+    return total_rows, total_columns
+
+
+def _create_matrix(rows: int, columns: int) -> List[List[str]]:
+    """
+    Create an empty transposition matrix with given dimensions.
+
+    :param rows: Amount of rows created matrix needs to have.
+    :param columns: Amount of columns created matrix needs to have.
+    :return: An empty transposition matrix.
+    """
+    matrix = []
+    blank_row = [""] * columns
+    for i in range(rows):
         matrix.append(copy.deepcopy(blank_row))
+    return matrix
+
+
+def _set_remainder_cells(ciphering: bool, matrix: List[List[str]],
+                         text: str) -> List[List[str]]:
+    """
+    Mark not usable cells in transposition matrix with None.
+
+    Usually, transposition matrix has more cells that those actually needed for
+    text characters. Exceeding cells should be marked as None. Be aware that
+    transposition algorithm appends exceeding cells in last row tail for
+    ciphering matrix whereas uses last column tail for deciphering matrix.
+
+    :param ciphering:
+    :param matrix:
+    :param text:
+    :return:
+    """
+    text_length = len(text)
+    total_rows = len(matrix)
+    total_columns = len(matrix[0])
     remainder = (total_columns * total_rows) - text_length
     for i in range(remainder):
         if ciphering:
-            matrix[-1][-1*(i+1)] = None
+            matrix[-1][-1 * (i + 1)] = None
         else:
-            matrix[-1*(i+1)][-1] = None
+            matrix[-1 * (i + 1)][-1] = None
     return matrix
 
 
@@ -95,7 +145,12 @@ def _populate_transposition_matrix(key: int, text: str,
     for index, char in enumerate(text):
         row, column = _calculate_position(index + offset, total_columns)
         if transposition_matrix[row][column] is None:
-            # Actually we only get here on deciphering cases.
+            # Actually we only get here on deciphering cases. When ciphering you
+            # exhaust text characters before touching None cells, but when
+            # deciphering you get can touch those cells when still distributing
+            # chars through matrix. When you come across a cell marked as None
+            # You should get over it and use next available cell (not marked
+            # as None).
             offset += 1
             row, column = _calculate_position(index + offset, total_columns)
         transposition_matrix[row][column] = char
@@ -122,7 +177,8 @@ def _get_transposed_text(populated_transposition_matrix: List[List[str]]) -> str
     Get transposed characters from populated transposition matrix.
 
     :param key: Secret key.
-    :param populated_transposition_matrix: Transposition matrix with text to cipher stored inside it.
+    :param populated_transposition_matrix: Transposition matrix with text to
+      cipher stored inside it.
     :param ciphering: If true then we are populating a transposition matrix
       for ciphering purposes. If false then we are using this function to
       populate a transposition matrix fro deciphering.
