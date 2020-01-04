@@ -109,10 +109,12 @@ def _set_remainder_cells(ciphering: bool, matrix: List[List[str]],
     transposition algorithm appends exceeding cells in last row tail for
     ciphering matrix whereas uses last column tail for deciphering matrix.
 
-    :param ciphering:
-    :param matrix:
-    :param text:
-    :return:
+    :param ciphering: If true then we are populating a transposition matrix
+      for ciphering purposes. If false then we are using this function to
+      populate a transposition matrix fro deciphering.
+    :param matrix: Transposition matrix to modify.
+    :param text: Text to transpose.
+    :return: A new transposition matrix with remainder cells set.
     """
     text_length = len(text)
     total_rows = len(matrix)
