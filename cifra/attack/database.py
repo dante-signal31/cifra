@@ -1,20 +1,18 @@
 """
 Cifra database definition.
 """
-import contextlib
 import os
 import sqlalchemy
-from sqlalchemy import Column, Integer, String, create_engine, Table, ForeignKey
-from sqlalchemy.engine import Engine
+from sqlalchemy import Column, Integer, String, create_engine, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.session import sessionmaker, Session
+from sqlalchemy.orm.session import sessionmaker
 
 if os.getenv("CIFRA_DEBUG", 0) == "1":
     # TODO: Check Travia CI sets it corresponding CIFRA_DEBUG env var to 1.
-    DATABASE_PATH = "cifra_database.sqlite"
+    DATABASE_FILENAME = "cifra_database.sqlite"
 else:
-    DATABASE_PATH = "~/.cifra/cifra_database.sqlite"
+    DATABASE_FILENAME = "~/.cifra/cifra_database.sqlite"
 
 
 Base = declarative_base()
@@ -27,7 +25,8 @@ class Language(Base):
     language = Column(String, nullable=False, unique=True)
     words = relationship("Word",
                          back_populates="language",
-                         cascade="all, delete, delete-orphan")
+                         cascade="all, delete, delete-orphan",
+                         collection_class=set)
 
     def __repr__(self):
         return f'Language: {self.language}'
@@ -43,41 +42,25 @@ class Word(Base):
                             back_populates="words")
 
     def __repr__(self):
-        return f'Word: {self.word} from language {self.language}'
+        return f'Word: {self.word} from {self.language}'
 
 
-def create_database(database_path: str = DATABASE_PATH) -> sqlalchemy.engine.Engine:
+def create_database(database_path: str = DATABASE_FILENAME) -> sqlalchemy.engine.Engine:
     """ Create and populate database with its default tables.
 
-    :param database_path: Absolute pathname for database file.
+    :param database_path: Absolute path for database file.
     :return: An SQLAlchemy Engine instance for this database.
     """
-    connection_string = f"sqlite:///{database_path}"
-    engine = create_engine(connection_string)
+    database_pathname = os.path.join(database_path, DATABASE_FILENAME)
+    connection_string = f"sqlite:///{database_pathname}"
+    engine = create_engine(connection_string, echo=True)
     Base.metadata.create_all(engine)
     return engine
 
 
-# @contextlib.contextmanager
-# def open_database_session(engine: Engine) -> sqlalchemy.orm.Session:
-#     """Context manager to open a session against database.
-#
-#     This context manager yields created session.
-#
-#     On scope exit session is closed.
-#
-#     :param engine: SQLAlchemy Engine instance got from create_database().
-#     :return: This context manager returns a SQLAlchemy Session instance to operate with database.
-#     """
-#     session_factory = sessionmaker(bind=engine)
-#     session = session_factory()
-#     yield session
-#     session.close()
-
-
 class Database(object):
 
-    def __init__(self, database_path: str = DATABASE_PATH):
+    def __init__(self, database_path: str = DATABASE_FILENAME):
         self._engine = create_database(database_path)
 
     def open_session(self):
