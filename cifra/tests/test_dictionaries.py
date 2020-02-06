@@ -68,9 +68,9 @@ def test_delete_language(temp_dir):
         with Dictionary.open(language, _database_path=temp_dir) as language_dictionary:
             assert all(language_dictionary.word_exists(word) for word in words)
     # Remove a dictionary.
-    Dictionary.remove_language(language_to_remove, database_path=temp_dir)
+    Dictionary.remove_language(language_to_remove, _database_path=temp_dir)
     # Check all words from removed language have been removed too.
-    not_existing_dictionary = Dictionary(language, temp_dir)
+    not_existing_dictionary = Dictionary(language_to_remove, temp_dir)
     not_existing_dictionary._open()
     assert all(not not_existing_dictionary.word_exists(word, _testing=True)
                for word in MICRO_DICTIONARIES[language_to_remove])

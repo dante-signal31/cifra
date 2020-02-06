@@ -21,7 +21,7 @@ class Dictionary(object):
     """
 
     @classmethod
-    def remove_language(cls, language: str, database_path: Optional[str] = None) -> None:
+    def remove_language(cls, language: str, _database_path: Optional[str] = None) -> None:
         """Remove given language from database.
 
         Be aware that all its words will be removed too.
@@ -30,7 +30,7 @@ class Dictionary(object):
         :param database_path: Absolute pathname to database file. Usually you don't
            set this parameter, but it is useful for tests.
         """
-        dictionary_to_remove = Dictionary(language) if database_path is None else Dictionary(language, database_path)
+        dictionary_to_remove = Dictionary(language) if _database_path is None else Dictionary(language, _database_path)
         dictionary_to_remove._open()
         dictionary_to_remove._load_language_mapper()
         dictionary_to_remove._connection.delete(dictionary_to_remove._language_mapper)
