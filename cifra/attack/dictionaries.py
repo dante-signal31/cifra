@@ -20,6 +20,22 @@ class Dictionary(object):
     is a wrapper to not to deal directly with that database.
     """
 
+    @classmethod
+    def remove_language(cls, language: str, database_path: Optional[str] = None) -> None:
+        """Remove given language from database.
+
+        Be aware that all its words will be removed too.
+
+        :param language: Language to remove from database.
+        :param database_path: Absolute pathname to database file. Usually you don't
+           set this parameter, but it is useful for tests.
+        """
+        dictionary_to_remove = Dictionary(language) if database_path is None else Dictionary(language, database_path)
+        dictionary_to_remove._open()
+        dictionary_to_remove._load_language_mapper()
+        dictionary_to_remove._connection.delete(dictionary_to_remove._language_mapper)
+        dictionary_to_remove._close()
+
     def __init__(self, language: str, database_path: str = None):
         self.language = language
         self._database = database.Database() if database_path is None else database.Database(database_path)
@@ -36,8 +52,9 @@ class Dictionary(object):
 
     @staticmethod
     @contextlib.contextmanager
-    def open(language: str, create: bool = False, database_path: Optional[str] = None) -> Dictionary:
-        """
+    def open(language: str, create: bool = False, _database_path: Optional[str] = None) -> Dictionary:
+        """ Context manager to create Dictionaries.
+
         This class is intended to be used as a context manager so you don't have
         to deal with opening and closing this dictionary. So, call this method
         as a context manager, it will return this instance so you can call
@@ -48,11 +65,12 @@ class Dictionary(object):
            It defaults to False. If it is set to False and language is not already present at
            database then a dictionaries.NotExistingLanguage exception is raised, but if it is
            set to True then language is registered in database as a new language.
-        :param database_path: Absolute pathname to database file. Usually you don't
+        :param _database_path: Absolute pathname to database file. Usually you don't
            set this parameter, but it is useful for tests.
         :return: An instance of this word dictionary.
+        :raises dictionaries.NotExistingLanguage: if create parameter is false and a not existing language is requested to be opened.
         """
-        opened_dictionary = Dictionary(language) if database_path is None else Dictionary(language, database_path)
+        opened_dictionary = Dictionary(language) if _database_path is None else Dictionary(language, _database_path)
         opened_dictionary._open()
         if opened_dictionary._already_created():
             opened_dictionary._load_language_mapper()
@@ -105,17 +123,29 @@ class Dictionary(object):
         self._language_mapper.words.remove(word_to_remove)
         self._connection.commit()
 
-    def word_exists(self, word: str) -> bool:
+    def word_exists(self, word: str, _testing: bool = False) -> bool:
         """
         Check if given word exists at this dictionary.
 
         :param word: word to check.
+        :param _testing: Don't mess this parameter. You usually won't use it. It is only
+           useful for tests.
         :return: True if word is already present at dictionary, False otherwise.
         """
-        language = self._connection.query(database.Language)\
-            .filter(database.Language.language == self.language)\
-            .first()
-        return any(word == word_entry.word for word_entry in language.words)
+        if not _testing:
+            # Normal execution flow will get here.
+            language = self._connection.query(database.Language)\
+                .filter(database.Language.language == self.language)\
+                .first()
+            return any(word == word_entry.word for word_entry in language.words)
+        else:
+            # Execution won't get here unless we are running some test.
+            # Tests are crafted to not to have same words in multiple languages so I
+            # can make a query without taking in count language.
+            words = self._connection.query(database.Word)\
+                .filter(database.Word.word == word)\
+                .first()
+            return words is not None
 
     def _already_created(self) -> bool:
         """ Check if a table for this instance language already exists at database
