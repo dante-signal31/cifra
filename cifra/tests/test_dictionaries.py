@@ -77,4 +77,4 @@ def test_delete_language(temp_dir):
     not_existing_dictionary._close()
 
 
-# def test_populate():
+# TODO: Write test for populate method.
