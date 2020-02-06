@@ -98,8 +98,7 @@ class Dictionary(object):
             .first()
 
     def add_word(self, word: str) -> None:
-        """
-        Add given word to dictionary.
+        """ Add given word to dictionary.
 
         If word is already present at dictionary, do nothing.
 
@@ -124,8 +123,7 @@ class Dictionary(object):
         self._connection.commit()
 
     def word_exists(self, word: str, _testing: bool = False) -> bool:
-        """
-        Check if given word exists at this dictionary.
+        """ Check if given word exists at this dictionary.
 
         :param word: word to check.
         :param _testing: Don't mess this parameter. You usually won't use it. It is only
@@ -146,6 +144,13 @@ class Dictionary(object):
                 .filter(database.Word.word == word)\
                 .first()
             return words is not None
+
+    def populate(self, file_pathname: str) -> None:
+        """ Read a file's words and stores them at this language database.
+
+        :param file_pathname: Absolute path to file with text to analyze.
+        """
+        raise NotImplementedError
 
     def _already_created(self) -> bool:
         """ Check if a table for this instance language already exists at database
