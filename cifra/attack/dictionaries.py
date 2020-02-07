@@ -9,7 +9,8 @@ A dictionary is a repository of distinct words present in an actual language.
 # __future__.
 from __future__ import annotations
 import contextlib
-from typing import Optional
+import re
+from typing import Optional, Set
 
 import database
 
@@ -169,6 +170,20 @@ class Dictionary(object):
         self._language_mapper = language
         self._connection.add(language)
         self._connection.commit()
+
+
+def get_words_from_text(text: str) -> Set[str]:
+    """ Extract words from given text.
+
+    Extracted words are normalized to lowercase and any punctuation mark
+    adjacent to words are removed.
+
+    :param text: Text to extract words from.
+    :return: A set of words normalized to lowercase and without any punctuation mark.
+    """
+    lowercase_text = text.lower()
+    words = set(re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text))
+    return words
 
 
 class NotExistingLanguage(Exception):

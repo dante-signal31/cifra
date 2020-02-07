@@ -5,7 +5,7 @@ import os
 import pytest
 import tempfile
 
-from cifra.attack.dictionaries import Dictionary, NotExistingLanguage
+from cifra.attack.dictionaries import Dictionary, get_words_from_text, NotExistingLanguage
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat"],
@@ -16,15 +16,81 @@ MICRO_DICTIONARIES = {
 
 ENGLISH_TEXT_FILE_NAME = "disclaimer.txt"
 
-ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS = "This eBook is for the use of anyone anywhere at no cost and with\
-almost no restrictions whatsoever You may copy it give it away or\
-re-use it under the terms of the Project Gutenberg License included\
-with this eBook or online at"
+ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS = """This eBook is for the use of anyone anywhere at no cost and with
+almost no restrictions whatsoever You may copy it give it away or
+re use it under the terms of the Project Gutenberg License included
+with this eBook or online at"""
 
-ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS = "This eBook is for the use of anyone anywhere at no cost and with\
-almost no restrictions whatsoever.You may copy it, give it away or\
-re-use it under the terms of the Project Gutenberg License included\
-with this eBook or online at"
+ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS = """This eBook is for the use of anyone anywhere at no cost and with
+almost no restrictions whatsoever.You may copy it, give it away or
+re-use it under the terms of the Project Gutenberg License included
+with this eBook or online at 2020"""
+
+SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS ="""Todavía lo recuerdo como si aquello hubiera sucedido ayer llegó á las
+puertas de la posada estudiando su aspecto afanosa y atentamente
+seguido por su maleta que alguien conducía tras él en una carretilla de
+mano Era un hombre alto fuerte pesado con un moreno pronunciado
+color de avellana Su trenza ó coleta alquitranada le caía sobre los
+hombros de su nada limpia blusa marina Sus manos callosas destrozadas
+y llenas de cicatrices enseñaban las extremidades de unas uñas rotas y
+negruzcas Y su rostro moreno llevaba en una mejilla aquella gran
+cicatriz de sable sucia y de un color blanquizco lívido y repugnante
+Todavía lo recuerdo paseando su mirada investigadora en torno del
+cobertizo silbando mientras examinaba y prorrumpiendo en seguida en
+aquella antigua canción marina que tan á menudo le oí cantar después"""
+
+SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS ="""Todavía lo recuerdo como si aquello hubiera sucedido ayer: llegó á las
+puertas de la posada estudiando su aspecto, afanosa y atentamente,
+seguido por su maleta que alguien conducía tras él en una carretilla de
+mano. Era un hombre alto, fuerte, pesado, con un moreno pronunciado,
+color de avellana. Su trenza ó coleta alquitranada le caía sobre los
+hombros de su nada limpia blusa marina. Sus manos callosas, destrozadas
+y llenas de cicatrices enseñaban las extremidades de unas uñas rotas y
+negruzcas. Y su rostro moreno llevaba en una mejilla aquella gran
+cicatriz de sable, sucia y de un color blanquizco, lívido y repugnante.
+Todavía lo recuerdo, paseando su mirada investigadora en torno del
+cobertizo, silbando mientras examinaba y prorrumpiendo, en seguida, en
+aquella antigua canción marina que tan á menudo le oí cantar después:"""
+
+FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS = """Combien le lecteur tandis que commodément assis au coin de son feu
+il s amuse à feuilleter les pages d un roman combien il se rend peu
+compte des fatigues et des angoisses de l auteur Combien il néglige de
+se représenter les longues nuits de luttes contre des phrases rétives
+les séances de recherches dans les bibliothèques les correspondances
+avec d érudits et illisibles professeurs allemands en un mot tout
+l énorme échafaudage que l auteur a édifié et puis démoli simplement
+pour lui procurer à lui lecteur quelques instants de distraction au
+coin de son feu ou encore pour lui tempérer l ennui d une heure en
+wagon"""
+
+FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS = """Combien le lecteur,--tandis que, commodément assis au coin de son feu,
+il s'amuse à feuilleter les pages d'un roman,--combien il se rend peu
+compte des fatigues et des angoisses de l'auteur! Combien il néglige de
+se représenter les longues nuits de luttes contre des phrases rétives,
+les séances de recherches dans les bibliothèques, les correspondances
+avec d'érudits et illisibles professeurs allemands, en un mot tout
+l'énorme échafaudage que l'auteur a édifié et puis démoli, simplement
+pour lui procurer, à lui, lecteur, quelques instants de distraction au
+coin de son feu, ou encore pour lui tempérer l'ennui d'une heure en
+wagon!"""
+
+GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS = """Da unser Gutsherr Mr Trelawney Dr Livesay und die übrigen Herren
+mich baten alle Einzelheiten über die Schatzinsel von Anfang bis zu
+Ende aufzuschreiben und nichts auszulassen als die Lage der Insel und
+auch die nur weil noch ungehobene Schätze dort liegen nehme ich im
+Jahre die Feder zur Hand und beginne bei der Zeit als mein Vater
+noch den Gasthof Zum Admiral Benbow hielt und jener dunkle alte
+Seemann mit dem Säbelhieb über der Wange unter unserem Dache Wohnung
+nahm"""
+
+GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS = """Da unser Gutsherr, Mr. Trelawney, Dr. Livesay und die übrigen Herren
+mich baten, alle Einzelheiten über die Schatzinsel von Anfang bis zu
+Ende aufzuschreiben und nichts auszulassen als die Lage der Insel, und
+auch die nur, weil noch ungehobene Schätze dort liegen, nehme ich im
+Jahre 17.. die Feder zur Hand und beginne bei der Zeit, als mein Vater
+noch den Gasthof „Zum Admiral Benbow“ hielt und jener dunkle, alte
+Seemann mit dem Säbelhieb über der Wange unter unserem Dache Wohnung
+nahm."""
 
 
 @pytest.fixture()
@@ -106,3 +172,15 @@ def test_delete_language(loaded_dictionary_temp_dir):
 # def test_populate_language(temporary_english_text_file):
 #     for line in temporary_english_text_file.readlines():
 #         words =
+
+
+@pytest.mark.parametrize("text_with_puntuation_marks,text_without_puntuation_marks",
+[(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+ (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+ (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+ (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS)],
+                         ids=["english", "spanish", "french", "german"])
+def test_get_words_from_text(text_with_puntuation_marks: str, text_without_puntuation_marks: str):
+    expected_set = set(text_without_puntuation_marks.lower().split())
+    returned_set = get_words_from_text(text_with_puntuation_marks)
+    assert expected_set == returned_set
