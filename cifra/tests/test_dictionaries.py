@@ -1,6 +1,7 @@
 """
 Tests for attack.dictionaries module.
 """
+import os
 import pytest
 import tempfile
 
@@ -12,6 +13,18 @@ MICRO_DICTIONARIES = {
     "french": ["qui", "non", "chien", "chat"],
     "german": ["ja", "nein", "hund", "katze"]
 }
+
+ENGLISH_TEXT_FILE_NAME = "disclaimer.txt"
+
+ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS = "This eBook is for the use of anyone anywhere at no cost and with\
+almost no restrictions whatsoever You may copy it give it away or\
+re-use it under the terms of the Project Gutenberg License included\
+with this eBook or online at"
+
+ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS = "This eBook is for the use of anyone anywhere at no cost and with\
+almost no restrictions whatsoever.You may copy it, give it away or\
+re-use it under the terms of the Project Gutenberg License included\
+with this eBook or online at"
 
 
 @pytest.fixture()
@@ -31,6 +44,14 @@ def loaded_dictionary_temp_dir(temp_dir):
         with Dictionary.open(language, _database_path=temp_dir) as language_dictionary:
             assert all(language_dictionary.word_exists(word) for word in words)
     yield temp_dir
+
+@pytest.fixture()
+def temporary_english_text_file(temp_dir):
+    temporary_text_file_pathname = os.path.join(temp_dir, ENGLISH_TEXT_FILE_NAME)
+    with open(temporary_text_file_pathname, "w") as text_file:
+        text_file.write(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS)
+        text_file.flush()
+        yield text_file
 
 
 def test_open_not_existing_dictionary(temp_dir):
@@ -80,5 +101,8 @@ def test_delete_language(loaded_dictionary_temp_dir):
                for word in MICRO_DICTIONARIES[language_to_remove])
     not_existing_dictionary._close()
 
-
-# TODO: Write test for populate method.
+#
+# # TODO: Write test for populate method.
+# def test_populate_language(temporary_english_text_file):
+#     for line in temporary_english_text_file.readlines():
+#         words =

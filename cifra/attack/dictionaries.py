@@ -20,8 +20,8 @@ class Dictionary(object):
     is a wrapper to not to deal directly with that database.
     """
 
-    @classmethod
-    def remove_language(cls, language: str, _database_path: Optional[str] = None) -> None:
+    @staticmethod
+    def remove_language(language: str, _database_path: Optional[str] = None) -> None:
         """Remove given language from database.
 
         Be aware that all its words will be removed too.
