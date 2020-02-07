@@ -19,6 +19,7 @@ def temp_dir():
     with tempfile.TemporaryDirectory() as temp_folder:
         yield temp_folder
 
+
 @pytest.fixture()
 def loaded_dictionary_temp_dir(temp_dir):
     # Load test data.
@@ -30,6 +31,7 @@ def loaded_dictionary_temp_dir(temp_dir):
         with Dictionary.open(language, _database_path=temp_dir) as language_dictionary:
             assert all(language_dictionary.word_exists(word) for word in words)
     yield temp_dir
+
 
 def test_open_not_existing_dictionary(temp_dir):
     with pytest.raises(NotExistingLanguage):
