@@ -5,7 +5,7 @@ import os
 import pytest
 import tempfile
 
-from cifra.attack.dictionaries import Dictionary, get_words_from_text, NotExistingLanguage
+from cifra.attack.dictionaries import Dictionary, get_words_from_text, NotExistingLanguage, get_words_from_text_file
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat"],
@@ -14,7 +14,7 @@ MICRO_DICTIONARIES = {
     "german": ["ja", "nein", "hund", "katze"]
 }
 
-ENGLISH_TEXT_FILE_NAME = "disclaimer.txt"
+TEXT_FILE_NAME = "text_to_load.txt"
 
 ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS = """This eBook is for the use of anyone anywhere at no cost and with
 almost no restrictions whatsoever You may copy it give it away or
@@ -111,13 +111,18 @@ def loaded_dictionary_temp_dir(temp_dir):
             assert all(language_dictionary.word_exists(word) for word in words)
     yield temp_dir
 
-@pytest.fixture()
-def temporary_english_text_file(temp_dir):
-    temporary_text_file_pathname = os.path.join(temp_dir, ENGLISH_TEXT_FILE_NAME)
+
+@pytest.fixture(params=[(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+                        (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+                        (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+                        (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS)],
+                ids=["english", "spanish", "french", "german"])
+def temporary_text_file(temp_dir, request):
+    temporary_text_file_pathname = os.path.join(temp_dir, TEXT_FILE_NAME)
     with open(temporary_text_file_pathname, "w") as text_file:
-        text_file.write(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS)
+        text_file.write(request.param[0])
         text_file.flush()
-        yield text_file
+        yield text_file, request.param[1]
 
 
 def test_open_not_existing_dictionary(temp_dir):
@@ -167,20 +172,22 @@ def test_delete_language(loaded_dictionary_temp_dir):
                for word in MICRO_DICTIONARIES[language_to_remove])
     not_existing_dictionary._close()
 
-#
-# # TODO: Write test for populate method.
-# def test_populate_language(temporary_english_text_file):
-#     for line in temporary_english_text_file.readlines():
-#         words =
+
+def test_populate_language(temporary_text_file):
+    text_file = temporary_text_file[0].name
+    text_without_punctuation_marks = temporary_text_file[1]
+    expected_set = set(text_without_punctuation_marks.lower().split())
+    returned_set = get_words_from_text_file(text_file)
+    assert expected_set == returned_set
 
 
-@pytest.mark.parametrize("text_with_puntuation_marks,text_without_puntuation_marks",
+@pytest.mark.parametrize("text_with_punctuation_marks,text_without_punctuation_marks",
 [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
  (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
  (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
  (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS)],
                          ids=["english", "spanish", "french", "german"])
-def test_get_words_from_text(text_with_puntuation_marks: str, text_without_puntuation_marks: str):
-    expected_set = set(text_without_puntuation_marks.lower().split())
-    returned_set = get_words_from_text(text_with_puntuation_marks)
+def test_get_words_from_text(text_with_punctuation_marks: str, text_without_punctuation_marks: str):
+    expected_set = set(text_without_punctuation_marks.lower().split())
+    returned_set = get_words_from_text(text_with_punctuation_marks)
     assert expected_set == returned_set

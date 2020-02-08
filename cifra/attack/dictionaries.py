@@ -172,6 +172,19 @@ class Dictionary(object):
         self._connection.commit()
 
 
+def get_words_from_text_file(file_pathname: str) -> Set[str]:
+    """extract words from given file.
+
+    :param file_pathname: Absolute filename to file to be read.
+    :return: A set of words normalized to lowercase and without any punctuation mark.
+    """
+    words = set()
+    with open(file_pathname) as text_file:
+        for line in text_file.readlines():
+            words = words | get_words_from_text(line)
+    return words
+
+
 def get_words_from_text(text: str) -> Set[str]:
     """ Extract words from given text.
 
