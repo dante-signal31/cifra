@@ -112,17 +112,17 @@ def loaded_dictionary_temp_dir(temp_dir):
     yield temp_dir
 
 
-@pytest.fixture(params=[(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
-                        (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
-                        (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
-                        (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS)],
+@pytest.fixture(params=[(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS, "english"),
+                        (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS, "spanish"),
+                        (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS, "french"),
+                        (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS, "german")],
                 ids=["english", "spanish", "french", "german"])
 def temporary_text_file(temp_dir, request):
     temporary_text_file_pathname = os.path.join(temp_dir, TEXT_FILE_NAME)
     with open(temporary_text_file_pathname, "w") as text_file:
         text_file.write(request.param[0])
         text_file.flush()
-        yield text_file, request.param[1]
+        yield text_file, request.param[1], request.param[2], temp_dir
 
 
 def test_open_not_existing_dictionary(temp_dir):
@@ -164,7 +164,7 @@ def test_create_language(temp_dir):
 def test_delete_language(loaded_dictionary_temp_dir):
     """Test delete a language also removes its words."""
     language_to_remove = "german"
-    Dictionary.remove_language(language_to_remove, _database_path=loaded_dictionary_temp_dir)
+    Dictionary.remove_dictionary(language_to_remove, _database_path=loaded_dictionary_temp_dir)
     # Check all words from removed language have been removed too.
     not_existing_dictionary = Dictionary(language_to_remove, loaded_dictionary_temp_dir)
     not_existing_dictionary._open()
@@ -173,12 +173,25 @@ def test_delete_language(loaded_dictionary_temp_dir):
     not_existing_dictionary._close()
 
 
-def test_populate_language(temporary_text_file):
+def test_get_words_from_text_file(temporary_text_file):
     text_file = temporary_text_file[0].name
     text_without_punctuation_marks = temporary_text_file[1]
     expected_set = set(text_without_punctuation_marks.lower().split())
     returned_set = get_words_from_text_file(text_file)
     assert expected_set == returned_set
+
+
+def test_populate_words_from_text_files(temporary_text_file):
+    text_file = temporary_text_file[0].name
+    text_without_punctuation_marks = temporary_text_file[1]
+    current_language = temporary_text_file[2]
+    temp_dir = temporary_text_file[3]
+    expected_set = set(text_without_punctuation_marks.lower().split())
+    with Dictionary.open(current_language, create=True, _database_path=temp_dir) as current_dictionary:
+        current_dictionary.populate(text_file)
+    with Dictionary.open(current_language, _database_path=temp_dir) as current_dictionary:
+        for word in expected_set:
+            assert current_dictionary.word_exists(word)
 
 
 @pytest.mark.parametrize("text_with_punctuation_marks,text_without_punctuation_marks",

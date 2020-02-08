@@ -22,7 +22,7 @@ class Dictionary(object):
     """
 
     @staticmethod
-    def remove_language(language: str, _database_path: Optional[str] = None) -> None:
+    def remove_dictionary(language: str, _database_path: Optional[str] = None) -> None:
         """Remove given language from database.
 
         Be aware that all its words will be removed too.
@@ -151,8 +151,8 @@ class Dictionary(object):
 
         :param file_pathname: Absolute path to file with text to analyze.
         """
-        # TODO: Implement.
-        raise NotImplementedError
+        for word in get_words_from_text_file(file_pathname):
+            self.add_word(word)
 
     def _already_created(self) -> bool:
         """ Check if a table for this instance language already exists at database
