@@ -9,8 +9,9 @@ A dictionary is a repository of distinct words present in an actual language.
 # __future__.
 from __future__ import annotations
 import contextlib
+import dataclasses
 import re
-from typing import Optional, Set, List
+from typing import Optional, Set, List, Dict
 
 import database
 
@@ -28,7 +29,7 @@ class Dictionary(object):
         Be aware that all its words will be removed too.
 
         :param language: Language to remove from database.
-        :param database_path: Absolute pathname to database file. Usually you don't
+        :param _database_path: Absolute pathname to database file. Usually you don't
            set this parameter, but it is useful for tests.
         """
         dictionary_to_remove = Dictionary(language) if _database_path is None else Dictionary(language, _database_path)
@@ -41,6 +42,8 @@ class Dictionary(object):
     def get_dictionaries_names(_database_path: Optional[str] = None) -> List[str]:
         """Get languages dictionaries present at database.
 
+        :param _database_path: Absolute pathname to database file. Usually you don't
+           set this parameter, but it is useful for tests.
         :return: A list with names of dictionaries present at database.
         """
         _database = database.Database() if _database_path is None else database.Database(_database_path)
@@ -48,7 +51,6 @@ class Dictionary(object):
         languages = connection.query(database.Language.language).all()
         connection.close()
         return [language_entry[0] for language_entry in languages]
-
 
     def __init__(self, language: str, database_path: str = None):
         self.language = language
@@ -82,7 +84,8 @@ class Dictionary(object):
         :param _database_path: Absolute pathname to database file. Usually you don't
            set this parameter, but it is useful for tests.
         :return: An instance of this word dictionary.
-        :raises dictionaries.NotExistingLanguage: if create parameter is false and a not existing language is requested to be opened.
+        :raises dictionaries.NotExistingLanguage: if create parameter is false and a not existing language is requested
+           to be opened.
         """
         opened_dictionary = Dictionary(language) if _database_path is None else Dictionary(language, _database_path)
         opened_dictionary._open()
@@ -124,10 +127,8 @@ class Dictionary(object):
         self._language_mapper.words.add(database_word)
         self._connection.commit()
 
-    def add_multiple_words(self, words: List[str]) -> None:
+    def add_multiple_words(self, words: Set[str]) -> None:
         """ Add given words to dictionary.
-
-        If word is already present at dictionary do nothing.
 
         :param words: List of words to add to dictionary.
         """
@@ -225,6 +226,70 @@ def get_words_from_text(text: str) -> Set[str]:
     lowercase_text = text.lower()
     words = set(re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text))
     return words
+
+
+@dataclasses.dataclass
+class IdentifiedLanguage:
+    """ Language selected as more likely to be the one the message is written into.
+
+    * winner: Name of language more likely.
+    * candidates: Dict with all languages probabilities. Probabilities are floats from 0 to 1.
+    """
+    winner: str
+    candidates: Dict[str, float]
+
+
+def identify_language(text: str, _database_path: Optional[str] = None) -> IdentifiedLanguage:
+    """ Identify language used to write text.
+
+    It check each word present at text to find out if is present in any language.
+    The language that has more words is select as winner.
+
+    :param text: Text to analyze.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+           set this parameter, but it is useful for tests.
+    :return: Language selected as more likely to be the one used to write text.
+    """
+    words = get_words_from_text(text)
+    candidates = _get_candidates_frequency(words,  _database_path)
+    winner = _get_winner(candidates)
+    return IdentifiedLanguage(winner, candidates)
+
+
+def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = None) -> Dict[str, float]:
+    """ Get frequency of presence of words in each language.
+
+    :param words: Text words.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+           set this parameter, but it is useful for tests.
+    :return: Dict with all languages probabilities. Probabilities are floats
+           from 0 to 1. The higher the frequency of presence of words in language
+           the higher of this probability.
+    """
+    total_words = len(words)
+    candidates = {}
+    for language in Dictionary.get_dictionaries_names(_database_path):
+        with Dictionary.open(language, _database_path=_database_path) as dictionary:
+            current_hits = sum(1 if dictionary.word_exists(word) else 0 for word in words)
+            candidates[language] = current_hits / total_words
+    return candidates
+
+
+def _get_winner(candidates: Dict[str, float]) -> str:
+    """ Return candidate with highest frequency.
+
+    :param candidates: Dict with all languages probabilities. Probabilities are floats
+           from 0 to 1. The higher the frequency of presence of words in language
+           the higher of this probability
+    :return: The name of language with highest probability.
+    """
+    current_winner = ""
+    current_highest_frequency = 0
+    for candidate_name, frequency in candidates.items():
+        if frequency > current_highest_frequency:
+            current_winner = candidate_name
+            current_highest_frequency = frequency
+    return current_winner
 
 
 class NotExistingLanguage(Exception):

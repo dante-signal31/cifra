@@ -10,7 +10,8 @@ from typing import List
 from test_common.fs.ops import copy_files
 from test_common.fs.temp import temp_dir
 
-from cifra.attack.dictionaries import Dictionary, get_words_from_text, NotExistingLanguage, get_words_from_text_file
+from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
+    NotExistingLanguage, get_words_from_text_file, identify_language
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat"],
@@ -31,7 +32,7 @@ almost no restrictions whatsoever.You may copy it, give it away or
 re-use it under the terms of the Project Gutenberg License included
 with this eBook or online at 2020"""
 
-SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS ="""Todavía lo recuerdo como si aquello hubiera sucedido ayer llegó á las
+SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS = """Todavía lo recuerdo como si aquello hubiera sucedido ayer llegó á las
 puertas de la posada estudiando su aspecto afanosa y atentamente
 seguido por su maleta que alguien conducía tras él en una carretilla de
 mano Era un hombre alto fuerte pesado con un moreno pronunciado
@@ -44,7 +45,7 @@ Todavía lo recuerdo paseando su mirada investigadora en torno del
 cobertizo silbando mientras examinaba y prorrumpiendo en seguida en
 aquella antigua canción marina que tan á menudo le oí cantar después"""
 
-SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS ="""Todavía lo recuerdo como si aquello hubiera sucedido ayer: llegó á las
+SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS = """Todavía lo recuerdo como si aquello hubiera sucedido ayer: llegó á las
 puertas de la posada estudiando su aspecto, afanosa y atentamente,
 seguido por su maleta que alguien conducía tras él en una carretilla de
 mano. Era un hombre alto, fuerte, pesado, con un moreno pronunciado,
@@ -107,7 +108,7 @@ class LoadedDictionaries:
     languages: List[str]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def loaded_dictionaries() -> LoadedDictionaries:
     """Create a dictionaries database at a temp dir filled with four languages.
 
@@ -155,14 +156,14 @@ def temporary_text_file(temp_dir, request):
 @pytest.mark.quick_test
 def test_open_not_existing_dictionary(temp_dir):
     with pytest.raises(NotExistingLanguage):
-        with Dictionary.open("english", _database_path=temp_dir) as english_dictionary:
+        with Dictionary.open("english", _database_path=temp_dir) as _:
             pass
 
 
 @pytest.mark.quick_test
 def test_open_existing_dictionary(temp_dir):
     # Create not existing language.
-    with Dictionary.open("english", create=True, _database_path=temp_dir) as english_dictionary:
+    with Dictionary.open("english", create=True, _database_path=temp_dir) as _:
         pass
     # Open newly created language
     with Dictionary.open("english", _database_path=temp_dir) as english_dictionary:
@@ -230,10 +231,10 @@ def test_populate_words_from_text_files(temporary_text_file):
 
 @pytest.mark.quick_test
 @pytest.mark.parametrize("text_with_punctuation_marks,text_without_punctuation_marks",
-[(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
- (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
- (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
- (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS)],
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+                          (FRENCH_TEXT_WITH_PUNCTUATIONS_MARKS, FRENCH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
+                          (GERMAN_TEXT_WITH_PUNCTUATIONS_MARKS, GERMAN_TEXT_WITHOUT_PUNCTUATIONS_MARKS)],
                          ids=["english", "spanish", "french", "german"])
 def test_get_words_from_text(text_with_punctuation_marks: str, text_without_punctuation_marks: str):
     expected_set = set(text_without_punctuation_marks.lower().split())
@@ -254,3 +255,12 @@ def test_add_multiple_words(temp_dir):
         assert all(not dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])
         dictionary.add_multiple_words(MICRO_DICTIONARIES[language])
         assert all(dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])
+
+
+@pytest.mark.slow_test
+@pytest.mark.parametrize("text,language",
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
+                         ids=["english", "spanish"])
+def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
+    assert identify_language(text, loaded_dictionaries.temp_dir).winner == language
