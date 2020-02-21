@@ -53,7 +53,7 @@ def create_database(database_path: str = DATABASE_FILENAME) -> sqlalchemy.engine
     """
     database_pathname = os.path.join(database_path, DATABASE_FILENAME)
     connection_string = f"sqlite:///{database_pathname}"
-    engine = create_engine(connection_string, echo=True)
+    engine = create_engine(connection_string, echo=False)
     Base.metadata.create_all(engine)
     return engine
 

@@ -2,8 +2,13 @@
 Tests for attack.dictionaries module.
 """
 import os
+import dataclasses
 import pytest
 import tempfile
+from typing import List
+
+from test_common.fs.ops import copy_files
+from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, NotExistingLanguage, get_words_from_text_file
 
@@ -92,11 +97,33 @@ noch den Gasthof „Zum Admiral Benbow“ hielt und jener dunkle, alte
 Seemann mit dem Säbelhieb über der Wange unter unserem Dache Wohnung
 nahm."""
 
+LANGUAGES = ["english", "spanish", "french", "german"]
 
-@pytest.fixture()
-def temp_dir():
-    with tempfile.TemporaryDirectory() as temp_folder:
-        yield temp_folder
+
+@dataclasses.dataclass
+class LoadedDictionaries:
+    """Class with info to use a temporary dictionaries database."""
+    temp_dir: str
+    languages: List[str]
+
+
+@pytest.fixture(scope="module")
+def loaded_dictionaries() -> LoadedDictionaries:
+    """Create a dictionaries database at a temp dir filled with four languages.
+
+    Languages in database are: english, spanish, french and german.
+
+    :return: Yields a LoadedDictionary fill info of temporal dictionaries database.
+    """
+    with tempfile.TemporaryDirectory() as temp_dir:
+        resources_path = os.path.join(temp_dir, "resources")
+        os.mkdir(resources_path)
+        copy_files([f"cifra/tests/resources/{language}_book.txt" for language in LANGUAGES], resources_path)
+        for language in LANGUAGES:
+            with Dictionary.open(language=language, create=True, _database_path=temp_dir) as dictionary:
+                language_book = os.path.join(temp_dir, f"resources/{language}_book.txt")
+                dictionary.populate(language_book)
+        yield LoadedDictionaries(temp_dir=temp_dir, languages=LANGUAGES)
 
 
 @pytest.fixture()
@@ -125,12 +152,14 @@ def temporary_text_file(temp_dir, request):
         yield text_file, request.param[1], request.param[2], temp_dir
 
 
+@pytest.mark.quick_test
 def test_open_not_existing_dictionary(temp_dir):
     with pytest.raises(NotExistingLanguage):
         with Dictionary.open("english", _database_path=temp_dir) as english_dictionary:
             pass
 
 
+@pytest.mark.quick_test
 def test_open_existing_dictionary(temp_dir):
     # Create not existing language.
     with Dictionary.open("english", create=True, _database_path=temp_dir) as english_dictionary:
@@ -140,6 +169,7 @@ def test_open_existing_dictionary(temp_dir):
         assert english_dictionary._already_created()
 
 
+@pytest.mark.quick_test
 def test_cwd_word(temp_dir):
     """Test if we can check for word existence, write a new word and finally delete it."""
     word = "test"
@@ -151,6 +181,7 @@ def test_cwd_word(temp_dir):
         assert not english_dictionary.word_exists(word)
 
 
+@pytest.mark.quick_test
 def test_create_language(temp_dir):
     """Test a new language creation at database."""
     english_dictionary = Dictionary("english", database_path=temp_dir)
@@ -161,6 +192,7 @@ def test_create_language(temp_dir):
     english_dictionary._close()
 
 
+@pytest.mark.quick_test
 def test_delete_language(loaded_dictionary_temp_dir):
     """Test delete a language also removes its words."""
     language_to_remove = "german"
@@ -173,6 +205,7 @@ def test_delete_language(loaded_dictionary_temp_dir):
     not_existing_dictionary._close()
 
 
+@pytest.mark.quick_test
 def test_get_words_from_text_file(temporary_text_file):
     text_file = temporary_text_file[0].name
     text_without_punctuation_marks = temporary_text_file[1]
@@ -181,6 +214,7 @@ def test_get_words_from_text_file(temporary_text_file):
     assert expected_set == returned_set
 
 
+@pytest.mark.quick_test
 def test_populate_words_from_text_files(temporary_text_file):
     text_file = temporary_text_file[0].name
     text_without_punctuation_marks = temporary_text_file[1]
@@ -194,6 +228,7 @@ def test_populate_words_from_text_files(temporary_text_file):
             assert current_dictionary.word_exists(word)
 
 
+@pytest.mark.quick_test
 @pytest.mark.parametrize("text_with_punctuation_marks,text_without_punctuation_marks",
 [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
  (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
@@ -204,3 +239,18 @@ def test_get_words_from_text(text_with_punctuation_marks: str, text_without_punc
     expected_set = set(text_without_punctuation_marks.lower().split())
     returned_set = get_words_from_text(text_with_punctuation_marks)
     assert expected_set == returned_set
+
+
+@pytest.mark.slow_test
+def test_get_dictionaries_names(loaded_dictionaries: LoadedDictionaries):
+    dictionaries_names = Dictionary.get_dictionaries_names(_database_path=loaded_dictionaries.temp_dir)
+    assert dictionaries_names == loaded_dictionaries.languages
+
+
+@pytest.mark.quick_test
+def test_add_multiple_words(temp_dir):
+    language = "english"
+    with Dictionary.open(language, create=True, _database_path=temp_dir) as dictionary:
+        assert all(not dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])
+        dictionary.add_multiple_words(MICRO_DICTIONARIES[language])
+        assert all(dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])

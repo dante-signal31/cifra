@@ -10,7 +10,7 @@ A dictionary is a repository of distinct words present in an actual language.
 from __future__ import annotations
 import contextlib
 import re
-from typing import Optional, Set
+from typing import Optional, Set, List
 
 import database
 
@@ -36,6 +36,19 @@ class Dictionary(object):
         dictionary_to_remove._load_language_mapper()
         dictionary_to_remove._connection.delete(dictionary_to_remove._language_mapper)
         dictionary_to_remove._close()
+
+    @staticmethod
+    def get_dictionaries_names(_database_path: Optional[str] = None) -> List[str]:
+        """Get languages dictionaries present at database.
+
+        :return: A list with names of dictionaries present at database.
+        """
+        _database = database.Database() if _database_path is None else database.Database(_database_path)
+        connection = _database.open_session()
+        languages = connection.query(database.Language.language).all()
+        connection.close()
+        return [language_entry[0] for language_entry in languages]
+
 
     def __init__(self, language: str, database_path: str = None):
         self.language = language
@@ -105,9 +118,23 @@ class Dictionary(object):
 
         :param word: word to add to dictionary.
         """
+        # print(f"Adding word '{word}' to '{self.language}' dictionary")
         database_word = database.Word(word=word, language=self._language_mapper,
                                       language_id=self._language_mapper.id)
         self._language_mapper.words.add(database_word)
+        self._connection.commit()
+
+    def add_multiple_words(self, words: List[str]) -> None:
+        """ Add given words to dictionary.
+
+        If word is already present at dictionary do nothing.
+
+        :param words: List of words to add to dictionary.
+        """
+        for word in words:
+            database_word = database.Word(word=word, language=self._language_mapper,
+                                          language_id=self._language_mapper.id)
+            self._language_mapper.words.add(database_word)
         self._connection.commit()
 
     def remove_word(self, word: str) -> None:
@@ -151,8 +178,8 @@ class Dictionary(object):
 
         :param file_pathname: Absolute path to file with text to analyze.
         """
-        for word in get_words_from_text_file(file_pathname):
-            self.add_word(word)
+        words = get_words_from_text_file(file_pathname)
+        self.add_multiple_words(words)
 
     def _already_created(self) -> bool:
         """ Check if a table for this instance language already exists at database
