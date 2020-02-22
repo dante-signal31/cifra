@@ -232,10 +232,12 @@ def get_words_from_text(text: str) -> Set[str]:
 class IdentifiedLanguage:
     """ Language selected as more likely to be the one the message is written into.
 
-    * winner: Name of language more likely.
+    * winner: Name of language more likely. If None the no proper language was found.
+    * winner_probability: Probability this language is actually de right one. If None the no proper language was found.
     * candidates: Dict with all languages probabilities. Probabilities are floats from 0 to 1.
     """
-    winner: str
+    winner: Optional[str]
+    winner_probability: Optional[float]
     candidates: Dict[str, float]
 
 
@@ -253,7 +255,8 @@ def identify_language(text: str, _database_path: Optional[str] = None) -> Identi
     words = get_words_from_text(text)
     candidates = _get_candidates_frequency(words,  _database_path)
     winner = _get_winner(candidates)
-    return IdentifiedLanguage(winner, candidates)
+    return IdentifiedLanguage(winner, candidates[winner], candidates) if winner is not None \
+        else IdentifiedLanguage(None, None, candidates)
 
 
 def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = None) -> Dict[str, float]:
@@ -270,6 +273,7 @@ def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = N
     candidates = {}
     for language in Dictionary.get_dictionaries_names(_database_path):
         with Dictionary.open(language, _database_path=_database_path) as dictionary:
+            # TODO: Too slow. I'd better load all words in memory at the very beginning.
             current_hits = sum(1 if dictionary.word_exists(word) else 0 for word in words)
             candidates[language] = current_hits / total_words
     return candidates
@@ -283,7 +287,7 @@ def _get_winner(candidates: Dict[str, float]) -> str:
            the higher of this probability
     :return: The name of language with highest probability.
     """
-    current_winner = ""
+    current_winner = None
     current_highest_frequency = 0
     for candidate_name, frequency in candidates.items():
         if frequency > current_highest_frequency:

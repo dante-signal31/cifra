@@ -11,7 +11,8 @@ from test_common.fs.ops import copy_files
 from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
-    NotExistingLanguage, get_words_from_text_file, identify_language
+    NotExistingLanguage, get_words_from_text_file, identify_language, \
+    IdentifiedLanguage
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat"],
@@ -263,4 +264,6 @@ def test_add_multiple_words(temp_dir):
                           (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
                          ids=["english", "spanish"])
 def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
-    assert identify_language(text, loaded_dictionaries.temp_dir).winner == language
+    identified_language = identify_language(text, loaded_dictionaries.temp_dir)
+    assert identified_language.winner == language
+    assert identified_language.winner_probability == 1.0
