@@ -37,17 +37,11 @@ def brute_force_caesar(ciphered_text: str, charset: str = DEFAULT_CHARSET, _data
     :return: Caesar key found.
     """
     key_space_length = len(charset)
-    current_best_key = 0
-    current_best_probability = 0
-    for i in range(key_space_length):
-        deciphered_text = decipher(ciphered_text, i, charset)
-        identified_language = identify_language(deciphered_text, _database_path=_database_path)
-        if identified_language.winner is None:
-            continue
-        elif identified_language.winner_probability > current_best_probability:
-            current_best_key = i
-            current_best_probability = identified_language.winner_probability
-    return current_best_key
+    results = []
+    for key in range(key_space_length):
+        results.append(_assess_caesar_key(ciphered_text, key, charset, _database_path=_database_path))
+    best_key = _get_best_result(results)
+    return best_key
 
 
 def brute_force_caesar_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> int:
