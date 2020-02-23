@@ -44,7 +44,8 @@ def brute_force_caesar(ciphered_text: str, charset: str = DEFAULT_CHARSET, _data
     return best_key
 
 
-def brute_force_caesar_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> int:
+def brute_force_caesar_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
+                          _database_path: Optional[str] = None) -> int:
     """ Get Caesar ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -104,7 +105,7 @@ def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
     return key, identified_language
 
 
-def _get_best_result(identified_languages: List[Tuple[str, IdentifiedLanguage]]) -> int:
+def _get_best_result(identified_languages: List[Tuple[int, IdentifiedLanguage]]) -> int:
     """Assess a list of IdentifiedLanguage objects and select the most likely.
 
     :param identified_languages: A list of tuples with a Caesar key and its corresponding IdentifiedLanguage object.
