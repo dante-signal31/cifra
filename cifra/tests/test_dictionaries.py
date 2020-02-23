@@ -130,6 +130,10 @@ def loaded_dictionaries() -> LoadedDictionaries:
 
 @pytest.fixture()
 def loaded_dictionary_temp_dir(temp_dir):
+    """Create a dictionary at a temp dir filled with only a handful of words.
+
+    :return: Yields created temp_dir to host temporal dictionary database.
+    """
     # Load test data.
     for language, words in MICRO_DICTIONARIES.items():
         with Dictionary.open(language, create=True, _database_path=temp_dir) as language_dictionary:

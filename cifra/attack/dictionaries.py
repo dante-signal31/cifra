@@ -161,14 +161,16 @@ class Dictionary(object):
         """
         if not _testing:
             # Normal execution flow will get here.
-            language = self._connection.query(database.Language)\
-                .filter(database.Language.language == self.language)\
-                .first()
-            return any(word == word_entry.word for word_entry in language.words)
+            # language = self._connection.query(database.Language)\
+            #     .filter(database.Language.language == self.language)\
+            #     .first()
+            # return any(word == word_entry.word for word_entry in language.words)
+            return any(word == word_entry.word for word_entry in self._language_mapper.words)
         else:
             # Execution won't get here unless we are running some test.
             # Tests are crafted to not to have same words in multiple languages so I
             # can make a query without taking in count language.
+            # TODO: Check if this branch is still needed.
             words = self._connection.query(database.Word)\
                 .filter(database.Word.word == word)\
                 .first()
@@ -273,7 +275,6 @@ def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = N
     candidates = {}
     for language in Dictionary.get_dictionaries_names(_database_path):
         with Dictionary.open(language, _database_path=_database_path) as dictionary:
-            # TODO: Too slow. I'd better load all words in memory at the very beginning.
             current_hits = sum(1 if dictionary.word_exists(word) else 0 for word in words)
             candidates[language] = current_hits / total_words
     return candidates
