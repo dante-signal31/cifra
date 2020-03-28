@@ -132,10 +132,10 @@ class Dictionary(object):
 
         :param words: List of words to add to dictionary.
         """
-        for word in words:
-            database_word = database.Word(word=word, language=self._language_mapper,
-                                          language_id=self._language_mapper.id)
-            self._language_mapper.words.add(database_word)
+        self._language_mapper.words.update((database.Word(word=word,
+                                                          language=self._language_mapper,
+                                                          language_id=self._language_mapper.id)
+                                            for word in words))
         self._connection.commit()
 
     def remove_word(self, word: str) -> None:
