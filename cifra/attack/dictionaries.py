@@ -121,7 +121,6 @@ class Dictionary(object):
 
         :param word: word to add to dictionary.
         """
-        # print(f"Adding word '{word}' to '{self.language}' dictionary")
         database_word = database.Word(word=word, language=self._language_mapper,
                                       language_id=self._language_mapper.id)
         self._language_mapper.words.add(database_word)
