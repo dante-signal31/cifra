@@ -15,9 +15,7 @@ def test_brute_force_caesar(loaded_dictionaries: LoadedDictionaries):
     elapsed_time = []
     with timeit(elapsed_time):
         found_key = brute_force_caesar(CIPHERED_MESSAGE_KEY_13, _database_path=loaded_dictionaries.temp_dir)
-        assert found_key == TEST_KEY
-        deciphered_text = decipher(CIPHERED_MESSAGE_KEY_13, found_key)
-        assert deciphered_text == ORIGINAL_MESSAGE
+        _assert_found_key(found_key)
     print(f"\n\nElapsed time with test_brute_force_caesar: {elapsed_time[0]} seconds.")
 
 
@@ -26,10 +24,14 @@ def test_brute_force_caesar_mp(loaded_dictionaries: LoadedDictionaries):
     elapsed_time = []
     with timeit(elapsed_time):
         found_key = brute_force_caesar_mp(CIPHERED_MESSAGE_KEY_13, _database_path=loaded_dictionaries.temp_dir)
-        assert found_key == TEST_KEY
-        deciphered_text = decipher(CIPHERED_MESSAGE_KEY_13, found_key)
-        assert deciphered_text == ORIGINAL_MESSAGE
+        _assert_found_key(found_key)
     print(f"\n\nElapsed time with test_brute_force_caesar_mp: {elapsed_time[0]} seconds.")
+
+
+def _assert_found_key(found_key):
+    assert found_key == TEST_KEY
+    deciphered_text = decipher(CIPHERED_MESSAGE_KEY_13, found_key)
+    assert deciphered_text == ORIGINAL_MESSAGE
 
 
 
