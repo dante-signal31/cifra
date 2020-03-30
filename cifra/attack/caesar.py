@@ -17,7 +17,7 @@ from cifra.attack.dictionaries import identify_language, IdentifiedLanguage
 from cifra.cipher.caesar import DEFAULT_CHARSET, decipher
 
 
-def brute_force_caesar(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> int:
+def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> int:
     """ Get Caesar ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -44,8 +44,8 @@ def brute_force_caesar(ciphered_text: str, charset: str = DEFAULT_CHARSET, _data
     return best_key
 
 
-def brute_force_caesar_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
-                          _database_path: Optional[str] = None) -> int:
+def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
+                   _database_path: Optional[str] = None) -> int:
     """ Get Caesar ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
