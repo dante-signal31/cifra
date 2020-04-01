@@ -11,7 +11,7 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import re
-from typing import Optional, Set, List, Dict
+from typing import Optional, Set, List, Dict, Tuple
 
 import database
 
@@ -294,6 +294,23 @@ def _get_winner(candidates: Dict[str, float]) -> str:
             current_winner = candidate_name
             current_highest_frequency = frequency
     return current_winner
+
+
+def get_best_result(identified_languages: List[Tuple[int, IdentifiedLanguage]]) -> int:
+    """Assess a list of IdentifiedLanguage objects and select the most likely.
+
+    :param identified_languages: A list of tuples with a Caesar key and its corresponding IdentifiedLanguage object.
+    :return: Caesar key whose IdentifiedLanguage object got the highest probability.
+    """
+    current_best_key = 0
+    current_best_probability = 0
+    for caesar_key, identified_language in identified_languages:
+        if identified_language.winner is None:
+            continue
+        elif identified_language.winner_probability > current_best_probability:
+            current_best_key = caesar_key
+            current_best_probability = identified_language.winner_probability
+    return current_best_key
 
 
 class NotExistingLanguage(Exception):

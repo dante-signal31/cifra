@@ -13,7 +13,7 @@ import multiprocessing
 import os
 from typing import Optional, List, Tuple
 
-from cifra.attack.dictionaries import identify_language, IdentifiedLanguage
+from cifra.attack.dictionaries import identify_language, IdentifiedLanguage, get_best_result
 from cifra.cipher.caesar import DEFAULT_CHARSET, decipher
 
 
@@ -40,7 +40,7 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
     results = []
     for key in range(key_space_length):
         results.append(_assess_caesar_key(ciphered_text, key, charset, _database_path=_database_path))
-    best_key = _get_best_result(results)
+    best_key = get_best_result(results)
     return best_key
 
 
@@ -69,7 +69,7 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     with multiprocessing.Pool(_get_usable_cpus()) as pool:
         nargs = ((ciphered_text, key, charset, _database_path) for key in range(key_space_length))
         results = pool.map(_analize_text, nargs)
-    best_key = _get_best_result(results)
+    best_key = get_best_result(results)
     return best_key
 
 
@@ -104,19 +104,3 @@ def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
     identified_language = identify_language(deciphered_text, _database_path=_database_path)
     return key, identified_language
 
-
-def _get_best_result(identified_languages: List[Tuple[int, IdentifiedLanguage]]) -> int:
-    """Assess a list of IdentifiedLanguage objects and select the most likely.
-
-    :param identified_languages: A list of tuples with a Caesar key and its corresponding IdentifiedLanguage object.
-    :return: Caesar key whose IdentifiedLanguage object got the highest probability.
-    """
-    current_best_key = 0
-    current_best_probability = 0
-    for caesar_key, identified_language in identified_languages:
-        if identified_language.winner is None:
-            continue
-        elif identified_language.winner_probability > current_best_probability:
-            current_best_key = caesar_key
-            current_best_probability = identified_language.winner_probability
-    return current_best_key
