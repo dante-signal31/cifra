@@ -9,14 +9,12 @@ the good one comparing it with words from a language dictionary. If original
 message was in a language you don't have a dictionary for, then correct key
 won't be detected.
 """
-import multiprocessing
-import os
-from typing import Optional, List, Tuple
+from typing import Optional
 
-from cifra.attack.dictionaries import identify_language, IdentifiedLanguage, get_best_result
+from cifra.attack.dictionaries import IdentifiedLanguage
 from cifra.attack.simple_attacks import _assess_key
-from cifra.attack.simple_attacks import brute_force as simple_brute_force
-from cifra.attack.simple_attacks import brute_force_mp as simple_brute_force_mp
+from cifra.attack.simple_attacks import _brute_force as simple_brute_force
+from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 from cifra.cipher.caesar import DEFAULT_CHARSET, decipher
 
 
@@ -39,12 +37,6 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
      set this parameter, but it is useful for tests.
     :return: Caesar key found.
     """
-    # key_space_length = len(charset)
-    # results = []
-    # for key in range(key_space_length):
-    #     results.append(_assess_caesar_key(ciphered_text, key, charset, _database_path=_database_path))
-    # best_key = get_best_result(results)
-    # return best_key
     return simple_brute_force(_assess_caesar_key,
                               ciphered_text=ciphered_text,
                               charset=charset,
@@ -71,13 +63,6 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
      set this parameter, but it is useful for tests.
     :return: Caesar key found.
     """
-    # key_space_length = len(charset)
-    # results = []
-    # with multiprocessing.Pool(_get_usable_cpus()) as pool:
-    #     nargs = ((ciphered_text, key, charset, _database_path) for key in range(key_space_length))
-    #     results = pool.map(_analize_text, nargs)
-    # best_key = get_best_result(results)
-    # return best_key
     return simple_brute_force_mp(_analize_text,
                                  ciphered_text=ciphered_text,
                                  charset=charset,
@@ -87,14 +72,6 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
 def _analize_text(nargs):
     ciphered_text, key, charset, _database_path = nargs
     return _assess_caesar_key(ciphered_text, key, charset, _database_path)
-
-
-# def _get_usable_cpus() -> int:
-#     """Get the number of CPUs the current process can use.
-#
-#     :return: Number of CPUs the current process can use.
-#     """
-#     return len(os.sched_getaffinity(0))
 
 
 def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
@@ -111,8 +88,5 @@ def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
      set this parameter, but it is useful for tests.
     :return: A tuple with used key ans An *IdentifiedLanguage* object with assessment result.
     """
-    # deciphered_text = decipher(ciphered_text, key, charset)
-    # identified_language = identify_language(deciphered_text, _database_path=_database_path)
-    # return key, identified_language
     return _assess_key(decipher, ciphered_text=ciphered_text, key=key, charset=charset, _database_path=_database_path)
 

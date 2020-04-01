@@ -1,12 +1,12 @@
 """ Module to keep common functions used by caesar and transposition attacks. """
 import multiprocessing
 import os
-from typing import Optional, Callable, Tuple
+from typing import Callable
 
 from cifra.attack.dictionaries import IdentifiedLanguage, identify_language, get_best_result
 
 
-def brute_force(assess_function: Callable, **assess_function_args) -> int:
+def _brute_force(assess_function: Callable, **assess_function_args) -> int:
     """ Get ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -30,7 +30,7 @@ def brute_force(assess_function: Callable, **assess_function_args) -> int:
     return best_key
 
 
-def brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
+def _brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
     """ Get ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text

@@ -3,14 +3,12 @@
 This module uses a brute force method to guess probable key used to cipher
 a text using Caesar algorithm.
 """
-import multiprocessing
 from typing import Optional
 
-# from cifra.attack.caesar import _get_usable_cpus
-from cifra.attack.dictionaries import identify_language, IdentifiedLanguage, get_best_result
+from cifra.attack.dictionaries import IdentifiedLanguage
 from cifra.attack.simple_attacks import _assess_key
-from cifra.attack.simple_attacks import brute_force as simple_brute_force
-from cifra.attack.simple_attacks import brute_force_mp as simple_brute_force_mp
+from cifra.attack.simple_attacks import _brute_force as simple_brute_force
+from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 from cifra.cipher.transposition import decipher
 
 
@@ -30,12 +28,6 @@ def brute_force(ciphered_text: str, _database_path: Optional[str] = None) -> int
      set this parameter, but it is useful for tests.
     :return: Transposition key found.
     """
-    # key_space_length = len(ciphered_text)
-    # results = []
-    # for key in range(1, key_space_length):
-    #     results.append(_assess_transposition_key(ciphered_text, key, _database_path=_database_path))
-    # best_key = get_best_result(results)
-    # return best_key
     return simple_brute_force(_assess_transposition_key,
                               ciphered_text=ciphered_text,
                               _database_path=_database_path)
@@ -57,13 +49,6 @@ def brute_force_mp(ciphered_text: str, _database_path: Optional[str] = None) -> 
      set this parameter, but it is useful for tests.
     :return: Trasnposition key found.
     """
-    # key_space_length = len(ciphered_text)
-    # results = []
-    # with multiprocessing.Pool(_get_usable_cpus()) as pool:
-    #     nargs = ((ciphered_text, key, _database_path) for key in range(1, key_space_length))
-    #     results = pool.map(_analize_text, nargs)
-    # best_key = get_best_result(results)
-    # return best_key
     return simple_brute_force_mp(_analize_text,
                                  ciphered_text=ciphered_text,
                                  _database_path=_database_path)
