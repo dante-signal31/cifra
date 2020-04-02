@@ -1,7 +1,7 @@
 """
 Library to cipher and decipher texts using Multiplicative method.
 """
-from cifra.cipher.caesar import DEFAULT_CHARSET, _get_new_char_position, _offset_text
+from cifra.cipher.common import DEFAULT_CHARSET, Ciphers, _offset_text
 
 
 def cipher(text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:
@@ -22,7 +22,8 @@ def cipher(text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:
      recovered.
     :return: Ciphered text.
     """
-    raise NotImplementedError
+    ciphered_text = _offset_text(text, key, True, Ciphers.MULTIPLICATIVE, charset)
+    return ciphered_text
 
 
 def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:
@@ -39,4 +40,6 @@ def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> st
     use the same charset or original text won't be properly recovered.
     :return: Deciphered text.
     """
-    raise NotImplementedError
+    deciphered_text = _offset_text(ciphered_text, key, False, Ciphers.MULTIPLICATIVE, charset)
+    return deciphered_text
+
