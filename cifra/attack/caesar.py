@@ -37,7 +37,9 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
      set this parameter, but it is useful for tests.
     :return: Caesar key found.
     """
+    key_space_length = len(charset)
     return simple_brute_force(_assess_caesar_key,
+                              key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
                               charset=charset,
                               _database_path=_database_path)
@@ -63,7 +65,9 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
      set this parameter, but it is useful for tests.
     :return: Caesar key found.
     """
+    key_space_length = len(charset)
     return simple_brute_force_mp(_analize_text,
+                                 key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  charset=charset,
                                  _database_path=_database_path)

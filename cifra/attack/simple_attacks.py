@@ -21,7 +21,7 @@ def _brute_force(assess_function: Callable, **assess_function_args) -> int:
     :param assess_function_args: Arguments to be used with given *assess_function*.
     :return: key found.
     """
-    key_space_length = len(assess_function_args["ciphered_text"])
+    key_space_length = assess_function_args.pop("key_space_length")
     results = []
     for key in range(1, key_space_length):
         assess_function_args["key"] = key
@@ -45,7 +45,7 @@ def _brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
     :param assess_function_args: Arguments to be used with given *assess_function*.
     :return: Transposition key found.
     """
-    key_space_length = len(assess_function_args["ciphered_text"])
+    key_space_length = key_space_length = assess_function_args.pop("key_space_length")
     results = []
     with multiprocessing.Pool(_get_usable_cpus()) as pool:
         nargs = ((assess_function_args["ciphered_text"],

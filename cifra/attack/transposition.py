@@ -28,7 +28,9 @@ def brute_force(ciphered_text: str, _database_path: Optional[str] = None) -> int
      set this parameter, but it is useful for tests.
     :return: Transposition key found.
     """
+    key_space_length = len(ciphered_text)
     return simple_brute_force(_assess_transposition_key,
+                              key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
                               _database_path=_database_path)
 
@@ -49,7 +51,9 @@ def brute_force_mp(ciphered_text: str, _database_path: Optional[str] = None) -> 
      set this parameter, but it is useful for tests.
     :return: Trasnposition key found.
     """
+    key_space_length = len(ciphered_text)
     return simple_brute_force_mp(_analize_text,
+                                 key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  _database_path=_database_path)
 
