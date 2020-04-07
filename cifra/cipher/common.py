@@ -1,5 +1,8 @@
 """ Common functions to be used across cipher modules. """
+import sys
 from enum import Enum, auto
+
+from cifra.cipher.cryptomath import find_mod_inverse, gcd
 
 DEFAULT_CHARSET = "abcdefghijklmnopqrstuvwxyz"
 
@@ -7,7 +10,7 @@ DEFAULT_CHARSET = "abcdefghijklmnopqrstuvwxyz"
 class Ciphers(Enum):
     CAESAR = auto()
     TRANSPOSITION = auto()
-    MULTIPLICATIVE = auto()
+    AFFINE = auto()
 
 
 def _offset_text(text: str, key: int, advance: bool, cipher_used: Ciphers, charset: str = DEFAULT_CHARSET) -> str:
@@ -46,27 +49,47 @@ def _get_new_char_position(char: str, key: int, advance: bool, cipher_used: Ciph
     """
     charset_length = len(charset)
     char_position = charset.index(char)
-    # offset_position = char_position + key if advance else char_position - key
-    offset_position = _get_offset_position(char_position, key, advance, cipher_used)
-    if advance:
-        new_char_position = offset_position % charset_length
-    else:
-        new_char_position = offset_position \
-            if offset_position >= 0 \
-            else charset_length - (abs(offset_position) % charset_length)
+    offset_position = _get_offset_position(char_position, key, advance, cipher_used, charset_length)
+    new_char_position = offset_position % charset_length
     return new_char_position
 
 
-def _get_offset_position(current_position: int, key: int, advance: bool, cipher_used: Ciphers) -> int:
+def _get_offset_position(current_position: int, key: int, advance: bool, cipher_used: Ciphers, charset_length: int) -> int:
     """ Get new offset depending on ciphering being used.
 
     :param current_position: Charset index of current char we are calculating offset to.
     :param key: Key value used for this message.
-    :param advance: If True offset is going to be applied frontwards.
+    :param advance: If True offset is going to be applied frontwards, that is when you cipher.
     :param cipher_used: Kind of cipher we are using for this message.
+    :param charset_length: Length of charset to use for substitution.
     :return: New offset position for this char.
     """
     if cipher_used is Ciphers.CAESAR:
         return current_position + key if advance else current_position - key
-    if cipher_used is Ciphers.MULTIPLICATIVE:
-        return current_position * key if advance else current_position / key
+    if cipher_used is Ciphers.AFFINE:
+        multiplying_key, adding_key = _get_key_parts(key, charset_length)
+        if advance:
+            return (current_position * multiplying_key) + adding_key
+        else:
+            return (current_position - adding_key) * find_mod_inverse(multiplying_key, charset_length)
+
+
+def _get_key_parts(key: int, charset_length: int) -> (int, int):
+    """ Split given key in to parts to be used by Affine cipher.
+
+    :param key: Key used for ciphering and deciphering.
+    :param charset_length: Length of charset used for Affine method substitutions. Both end should
+      use the same charset or original text won't be properly recovered.
+    :return: A tuple whose first component is key used for multiplying while ciphering and second component is used for
+      adding.
+    """
+    multiplying_key = key // charset_length
+    adding_key = key % charset_length
+    return multiplying_key, adding_key
+
+
+
+
+
+
+
