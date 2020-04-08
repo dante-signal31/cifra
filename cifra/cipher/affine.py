@@ -1,6 +1,7 @@
 """
 Library to cipher and decipher texts using Affine method.
 """
+import random
 import sys
 from enum import Enum, auto
 from cifra.cipher.common import DEFAULT_CHARSET, Ciphers, _offset_text
@@ -78,7 +79,24 @@ def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> st
     return deciphered_text
 
 
-def _validate_key(key: int, charset_length: int) -> None:
+def get_random_key(charset: str) -> int:
+    """Get a valid random Affine key for given charset.
+
+    Get manually a valid Affine key can be hardsome because all rules it must meet.
+    This function automates that task, so you can use it and run.
+
+    :param charset: Charset you are going to use to cipher.
+    :returns: An random Affine key valid for given charset.
+    """
+    charset_length = len(charset)
+    while True:
+        key_a = random.randint(2, charset_length)
+        key_b = random.randint(2, charset_length)
+        if gcd(key_a, charset_length) == 1:
+            return key_a * charset_length + key_b
+
+
+def _validate_key(key: int, charset_length: int) -> bool:
     """ Check if given key is good for Affine cipher using this charset.
 
     Not every key is good to cipher using Affine with a given charset. It must
@@ -89,7 +107,7 @@ def _validate_key(key: int, charset_length: int) -> None:
     :param key: Secret key. Both ends should know this and use the same one.
     :param charset_length: Charset used for Affine method substitutions. Both end should
       use the same charset or original text won't be properly recovered.
-    :return: None
+    :return: True if validation was right. You won't receive a False, an exception will be raised before.
     """
     multiplying_key = key // charset_length
     adding_key = key % charset_length
@@ -103,5 +121,5 @@ def _validate_key(key: int, charset_length: int) -> None:
         raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.adding_key_too_long)
     elif gcd(multiplying_key, charset_length) != 1:
         raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.keys_not_relatively_prime)
-
+    return True
 
