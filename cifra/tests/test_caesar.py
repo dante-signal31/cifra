@@ -4,7 +4,7 @@ Tests for cipher.caesar module.
 import cipher.caesar as caesar
 
 ORIGINAL_MESSAGE = "This is my secret message."
-CIPHERED_MESSAGE_KEY_13 = "Guvf vf zl frperg zrffntr."
+CIPHERED_MESSAGE_KEY_13 = "guv6Jv6Jz!J6rp5r7Jzr66ntrM"
 TEST_KEY = 13
 
 

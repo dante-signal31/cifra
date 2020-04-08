@@ -5,18 +5,20 @@ import string
 import cipher.affine as affine
 from test_common._random.strings import random_string
 
-ORIGINAL_MESSAGE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-CIPHERED_MESSAGE_KEY_79 = "BEHKNQTWZCFILORUXADGJMPSVY"
-TEST_KEY = 79
+ORIGINAL_MESSAGE = """A computer would deserve to be called intelligent
+if it could deceive a human into believing that it was human."
+-Alan Turing"""
+CIPHERED_MESSAGE_KEY_2894 = "5QG9ol3La6QI93!xQxaia6faQL9QdaQG1!!axQARLa!!AuaRLLADQALQG93!xQxaGaAfaQ1QX3o1RQARL9Qda!AafARuQLX1LQALQI1iQX3o1RNNNN5!1RQP36ARu"
+TEST_KEY = 2894
 
 
 def test_cipher():
     ciphered_text = affine.cipher(ORIGINAL_MESSAGE, TEST_KEY)
-    assert ciphered_text == CIPHERED_MESSAGE_KEY_79
+    assert ciphered_text == CIPHERED_MESSAGE_KEY_2894
 
 
 def test_decipher():
-    deciphered_text = affine.decipher(CIPHERED_MESSAGE_KEY_79, TEST_KEY)
+    deciphered_text = affine.decipher(CIPHERED_MESSAGE_KEY_2894, TEST_KEY)
     assert deciphered_text == ORIGINAL_MESSAGE
 
 
