@@ -5,10 +5,8 @@ import string
 import cipher.affine as affine
 from test_common._random.strings import random_string
 
-ORIGINAL_MESSAGE = """A computer would deserve to be called intelligent
-if it could deceive a human into believing that it was human."
--Alan Turing"""
-CIPHERED_MESSAGE_KEY_2894 = "5QG9ol3La6QI93!xQxaia6faQL9QdaQG1!!axQARLa!!AuaRLLADQALQG93!xQxaGaAfaQ1QX3o1RQARL9Qda!AafARuQLX1LQALQI1iQX3o1RNNNN5!1RQP36ARu"
+ORIGINAL_MESSAGE =          "A computer would deserve to be called intelligent if it could deceive a human into believing that it was human.\" Alan Turing"
+CIPHERED_MESSAGE_KEY_2894 = "5QG9ol3La6QI93!xQxaia6faQL9QdaQG1!!axQARLa!!AuaRLQADQALQG93!xQxaGaAfaQ1QX3o1RQARL9Qda!AafARuQLX1LQALQI1iQX3o1RN\"Q5!1RQP36ARu"
 TEST_KEY = 2894
 
 

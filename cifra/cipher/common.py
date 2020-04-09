@@ -25,14 +25,9 @@ def _offset_text(text: str, key: int, advance: bool, cipher_used: Ciphers, chars
     """
     offset_text = ""
     for char in text:
-        # new_char = char
-        # normalized_char = char.lower()
+        new_char = char
         if char in charset:
-            # new_char_position = _get_new_char_position(normalized_char, key, advance, cipher_used, charset)
             new_char_position = _get_new_char_position(char, key, advance, cipher_used, charset)
-            # new_char = charset[new_char_position] \
-            #     if char.islower() \
-            #     else charset[new_char_position].upper()
             new_char = charset[new_char_position]
         offset_text = "".join([offset_text, new_char])
     return offset_text
