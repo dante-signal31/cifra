@@ -79,7 +79,7 @@ def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> st
     return deciphered_text
 
 
-def get_random_key(charset: str) -> int:
+def get_random_key(charset: str = DEFAULT_CHARSET) -> int:
     """Get a valid random Affine key for given charset.
 
     Get manually a valid Affine key can be hardsome because all rules it must meet.
