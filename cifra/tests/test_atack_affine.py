@@ -3,7 +3,7 @@ import pytest
 from test_common.benchmark.timing import timeit
 
 from cifra.attack.affine import brute_force, brute_force_mp
-from cifra.cipher.affine import decipher, cipher, get_random_key
+from cifra.cipher.affine import decipher
 from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionaries
 
 
