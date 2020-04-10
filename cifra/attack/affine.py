@@ -10,7 +10,12 @@ message was in a language you don't have a dictionary for, then correct key
 won't be detected.
 """
 from typing import Optional
+from cifra.cipher.affine import decipher, validate_key, WrongKey
 from cifra.cipher.common import DEFAULT_CHARSET
+from cifra.attack.dictionaries import IdentifiedLanguage
+from cifra.attack.simple_attacks import _assess_key
+from cifra.attack.simple_attacks import _brute_force as simple_brute_force
+from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 
 
 def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> int:
@@ -32,7 +37,12 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
      set this parameter, but it is useful for tests.
     :return: Affine key found.
     """
-    raise NotImplementedError
+    key_space_length = len(charset) ** 2
+    return simple_brute_force(_assess_affine_key,
+                              key_space_length=key_space_length,
+                              ciphered_text=ciphered_text,
+                              charset=charset,
+                              _database_path=_database_path)
 
 
 def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
@@ -55,4 +65,36 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
      set this parameter, but it is useful for tests.
     :return: Caesar key found.
     """
-    raise NotImplementedError
+    key_space_length = len(charset) ** 2
+    return simple_brute_force_mp(_analize_text,
+                                 key_space_length=key_space_length,
+                                 ciphered_text=ciphered_text,
+                                 charset=charset,
+                                 _database_path=_database_path)
+
+
+def _analize_text(nargs):
+    ciphered_text, key, charset, _database_path = nargs
+    return _assess_affine_key(ciphered_text, key, charset, _database_path)
+
+
+def _assess_affine_key(ciphered_text: str, key: int, charset: str,
+                       _database_path: Optional[str] = None) -> (int, IdentifiedLanguage):
+    """Decipher text with given key and try to find out if returned text can be identified with any
+    language in our dictionaries.
+
+    :param ciphered_text: Text to be deciphered.
+    :param key: Key to decipher *ciphered_text*.
+    :param charset: Charset used for Caesar method substitution. Both ends, ciphering
+     and deciphering, should use the same charset or original text won't be properly
+     recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+     set this parameter, but it is useful for tests.
+    :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
+    """
+    try:
+        validate_key(key, len(charset))
+    except WrongKey:
+        return key, IdentifiedLanguage(None, None, dict())
+    else:
+        return _assess_key(decipher, ciphered_text=ciphered_text, key=key, charset=charset, _database_path=_database_path)

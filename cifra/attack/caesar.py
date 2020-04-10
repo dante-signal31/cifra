@@ -90,7 +90,7 @@ def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
      recovered.
     :param _database_path: Absolute pathname to database file. Usually you don't
      set this parameter, but it is useful for tests.
-    :return: A tuple with used key ans An *IdentifiedLanguage* object with assessment result.
+    :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
     """
     return _assess_key(decipher, ciphered_text=ciphered_text, key=key, charset=charset, _database_path=_database_path)
 

@@ -58,7 +58,7 @@ def cipher(text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:
      recovered.
     :return: Ciphered text.
     """
-    _validate_key(key, len(charset))
+    validate_key(key, len(charset))
     ciphered_text = _offset_text(text, key, True, Ciphers.AFFINE, charset)
     return ciphered_text
 
@@ -74,7 +74,7 @@ def decipher(ciphered_text: str, key: int, charset: str = DEFAULT_CHARSET) -> st
       use the same charset or original text won't be properly recovered.
     :return: Deciphered text.
     """
-    _validate_key(key, len(charset))
+    validate_key(key, len(charset))
     deciphered_text = _offset_text(ciphered_text, key, False, Ciphers.AFFINE, charset)
     return deciphered_text
 
@@ -96,7 +96,7 @@ def get_random_key(charset: str = DEFAULT_CHARSET) -> int:
             return key_a * charset_length + key_b
 
 
-def _validate_key(key: int, charset_length: int) -> bool:
+def validate_key(key: int, charset_length: int) -> bool:
     """ Check if given key is good for Affine cipher using this charset.
 
     Not every key is good to cipher using Affine with a given charset. It must
