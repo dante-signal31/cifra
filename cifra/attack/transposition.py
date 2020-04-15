@@ -18,7 +18,7 @@ def brute_force(ciphered_text: str, _database_path: Optional[str] = None) -> int
     Uses a brute force technique trying the entire key space until finding a text
     that can be identified with any of our languages.
 
-    **You should not use this function. Use *brute_force_transposition_mp* instead.** This
+    **You should not use this function. Use *brute_force_mp* instead.** This
     function is slower than *mp* one because is sequential while the other uses a
     multiprocessing approach. This function only stay here to allow comparisons
     between sequential and multiprocessing approaches.
