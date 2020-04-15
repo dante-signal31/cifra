@@ -1,7 +1,7 @@
 """Module to attack Transposition cipher texts.
 
 This module uses a brute force method to guess probable key used to cipher
-a text using Caesar algorithm.
+a text using Transposition algorithm.
 """
 from typing import Optional
 
