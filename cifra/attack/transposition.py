@@ -49,7 +49,7 @@ def brute_force_mp(ciphered_text: str, _database_path: Optional[str] = None) -> 
     :param ciphered_text: Text to be deciphered.
     :param _database_path: Absolute pathname to database file. Usually you don't
      set this parameter, but it is useful for tests.
-    :return: Trasnposition key found.
+    :return: Transposition key found.
     """
     key_space_length = len(ciphered_text)
     return simple_brute_force_mp(_analize_text,
