@@ -300,15 +300,15 @@ def get_best_result(identified_languages: List[Tuple[int, IdentifiedLanguage]]) 
     """Assess a list of IdentifiedLanguage objects and select the most likely.
 
     :param identified_languages: A list of tuples with a Caesar key and its corresponding IdentifiedLanguage object.
-    :return: Caesar key whose IdentifiedLanguage object got the highest probability.
+    :return: Key whose IdentifiedLanguage object got the highest probability.
     """
     current_best_key = 0
     current_best_probability = 0
-    for caesar_key, identified_language in identified_languages:
+    for current_key, identified_language in identified_languages:
         if identified_language.winner is None:
             continue
         elif identified_language.winner_probability > current_best_probability:
-            current_best_key = caesar_key
+            current_best_key = current_key
             current_best_probability = identified_language.winner_probability
     return current_best_key
 

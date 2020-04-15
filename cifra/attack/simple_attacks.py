@@ -45,7 +45,7 @@ def _brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
     :param assess_function_args: Arguments to be used with given *assess_function*.
     :return: Transposition key found.
     """
-    key_space_length = key_space_length = assess_function_args.pop("key_space_length")
+    key_space_length = assess_function_args.pop("key_space_length")
     results = []
     with multiprocessing.Pool(_get_usable_cpus()) as pool:
         nargs = ((assess_function_args["ciphered_text"],
@@ -68,7 +68,7 @@ def _assess_key(decipher_function: Callable, **decipher_functions_args) -> (int,
 
     :param decipher_function: Function to decipher given text.
     :param decipher_functions_args: Key to decipher *ciphered_text*.
-    :return: A tuple with used key ans An *IdentifiedLanguage* object with assessment result.
+    :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
     """
     database_path = decipher_functions_args.pop("_database_path")
     deciphered_text = decipher_function(**decipher_functions_args)
