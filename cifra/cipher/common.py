@@ -72,7 +72,7 @@ def _get_offset_position(current_position: int, key: int, advance: bool, cipher_
 
 
 def _get_key_parts(key: int, charset_length: int) -> (int, int):
-    """ Split given key in to parts to be used by Affine cipher.
+    """ Split given key in two parts to be used by Affine cipher.
 
     :param key: Key used for ciphering and deciphering.
     :param charset_length: Length of charset used for Affine method substitutions. Both end should
