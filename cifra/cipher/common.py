@@ -1,8 +1,7 @@
 """ Common functions to be used across cipher modules. """
-import sys
 from enum import Enum, auto
 
-from cifra.cipher.cryptomath import find_mod_inverse, gcd
+from cifra.cipher.cryptomath import find_mod_inverse
 
 DEFAULT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 !?.'
 
