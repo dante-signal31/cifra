@@ -15,7 +15,8 @@ from cifra.attack.dictionaries import IdentifiedLanguage
 from cifra.attack.simple_attacks import _assess_key
 from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
-from cifra.cipher.caesar import DEFAULT_CHARSET, decipher
+from cifra.cipher.caesar import decipher
+from cifra.cipher.common import DEFAULT_CHARSET
 
 
 def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> int:
