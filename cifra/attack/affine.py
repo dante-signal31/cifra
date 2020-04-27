@@ -10,7 +10,7 @@ message was in a language you don't have a dictionary for, then correct key
 won't be detected.
 """
 from typing import Optional
-from cifra.cipher.affine import decipher, validate_key, WrongKey
+from cifra.cipher.affine import decipher, validate_key, WrongAffineKey
 from cifra.cipher.common import DEFAULT_CHARSET
 from cifra.attack.dictionaries import IdentifiedLanguage
 from cifra.attack.simple_attacks import _assess_key
@@ -94,7 +94,7 @@ def _assess_affine_key(ciphered_text: str, key: int, charset: str,
     """
     try:
         validate_key(key, len(charset))
-    except WrongKey:
+    except WrongAffineKey:
         return key, IdentifiedLanguage(None, None, dict())
     else:
         return _assess_key(decipher, ciphered_text=ciphered_text, key=key, charset=charset, _database_path=_database_path)

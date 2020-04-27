@@ -8,7 +8,7 @@ from cifra.cipher.common import DEFAULT_CHARSET, Ciphers, _offset_text
 from cifra.cipher.cryptomath import gcd
 
 
-class WrongKeyCauses(Enum):
+class WrongAffineKeyCauses(Enum):
     multiplying_key_below_zero = auto()
     multiplying_key_zero = auto()
     adding_key_below_zero = auto ()
@@ -16,25 +16,25 @@ class WrongKeyCauses(Enum):
     keys_not_relatively_prime = auto()
 
 
-class WrongKey(Exception):
+class WrongAffineKey(Exception):
 
-    def __init__(self, key: int, multiplying_key: int, adding_key: int, cause: WrongKeyCauses):
+    def __init__(self, key: int, multiplying_key: int, adding_key: int, cause: WrongAffineKeyCauses):
         self.key = key
         self.multiplying_key = multiplying_key
         self.adding_key = adding_key
         self._cause = cause
 
-    def get_cause(self)-> (WrongKeyCauses, str):
+    def get_cause(self)-> (WrongAffineKeyCauses, str):
         """Get because keys are wrong and a written explanation"""
-        if self._cause == WrongKeyCauses.multiplying_key_below_zero:
+        if self._cause == WrongAffineKeyCauses.multiplying_key_below_zero:
             return self._cause, "Wrong key used: Multiplying key must be greater than 0."
-        if self._cause == WrongKeyCauses.multiplying_key_zero:
+        if self._cause == WrongAffineKeyCauses.multiplying_key_zero:
             return self._cause, "Wrong key used: Multiplying key must not be 0."
-        elif self._cause == WrongKeyCauses.adding_key_below_zero:
+        elif self._cause == WrongAffineKeyCauses.adding_key_below_zero:
             return self._cause, "Wrong key used: Adding key must be greater than 0."
-        elif self._cause == WrongKeyCauses.adding_key_too_long:
+        elif self._cause == WrongAffineKeyCauses.adding_key_too_long:
             return self._cause, "Wrong key used: Adding key must be smaller than charset length."
-        elif self._cause == WrongKeyCauses.keys_not_relatively_prime:
+        elif self._cause == WrongAffineKeyCauses.keys_not_relatively_prime:
             return self._cause, "Wrong key used: Keys are not relatively prime."
 
 
@@ -96,6 +96,20 @@ def get_random_key(charset: str = DEFAULT_CHARSET) -> int:
             return key_a * charset_length + key_b
 
 
+def get_key_parts(key: int, charset_length: int) -> (int, int):
+    """ Split given key in two parts to be used by Affine cipher.
+
+    :param key: Key used for ciphering and deciphering.
+    :param charset_length: Length of charset used for Affine method substitutions. Both end should
+      use the same charset or original text won't be properly recovered.
+    :return: A tuple whose first component is key used for multiplying while ciphering and second component is used for
+      adding.
+    """
+    multiplying_key = key // charset_length
+    adding_key = key % charset_length
+    return multiplying_key, adding_key
+
+
 def validate_key(key: int, charset_length: int) -> bool:
     """ Check if given key is good for Affine cipher using this charset.
 
@@ -112,14 +126,14 @@ def validate_key(key: int, charset_length: int) -> bool:
     multiplying_key = key // charset_length
     adding_key = key % charset_length
     if multiplying_key < 0:
-        raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.multiplying_key_below_zero)
+        raise WrongAffineKey(key, multiplying_key, adding_key, WrongAffineKeyCauses.multiplying_key_below_zero)
     elif multiplying_key == 0:
-        raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.multiplying_key_zero)
+        raise WrongAffineKey(key, multiplying_key, adding_key, WrongAffineKeyCauses.multiplying_key_zero)
     elif adding_key < 0:
-        raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.adding_key_below_zero)
+        raise WrongAffineKey(key, multiplying_key, adding_key, WrongAffineKeyCauses.adding_key_below_zero)
     elif adding_key > charset_length - 1:
-        raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.adding_key_too_long)
+        raise WrongAffineKey(key, multiplying_key, adding_key, WrongAffineKeyCauses.adding_key_too_long)
     elif gcd(multiplying_key, charset_length) != 1:
-        raise WrongKey(key, multiplying_key, adding_key, WrongKeyCauses.keys_not_relatively_prime)
+        raise WrongAffineKey(key, multiplying_key, adding_key, WrongAffineKeyCauses.keys_not_relatively_prime)
     return True
 

@@ -63,14 +63,14 @@ def _get_offset_position(current_position: int, key: int, advance: bool, cipher_
     if cipher_used is Ciphers.CAESAR:
         return current_position + key if advance else current_position - key
     if cipher_used is Ciphers.AFFINE:
-        multiplying_key, adding_key = _get_key_parts(key, charset_length)
+        multiplying_key, adding_key = get_affine_key_parts(key, charset_length)
         if advance:
             return (current_position * multiplying_key) + adding_key
         else:
             return (current_position - adding_key) * find_mod_inverse(multiplying_key, charset_length)
 
 
-def _get_key_parts(key: int, charset_length: int) -> (int, int):
+def get_affine_key_parts(key: int, charset_length: int) -> (int, int):
     """ Split given key in two parts to be used by Affine cipher.
 
     :param key: Key used for ciphering and deciphering.
@@ -82,7 +82,6 @@ def _get_key_parts(key: int, charset_length: int) -> (int, int):
     multiplying_key = key // charset_length
     adding_key = key % charset_length
     return multiplying_key, adding_key
-
 
 
 
