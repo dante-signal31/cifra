@@ -47,23 +47,23 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
 
 def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
                    _database_path: Optional[str] = None) -> int:
-    """ Get Caesar ciphered text key.
+    """ Get Affine ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
     that can be identified with any of our languages.
 
-    **You should use this function instead of *brute_force_caesar*.**
+    **You should use this function instead of *brute_force*.**
 
-    Whereas *brute_force_caesar* uses a sequential approach, this function uses
+    Whereas *brute_force* uses a sequential approach, this function uses
     multiprocessing to improve performance.
 
     :param ciphered_text: Text to be deciphered.
-    :param charset: Charset used for Caesar method substitution. Both ends, ciphering
+    :param charset: Charset used for Affine method substitution. Both ends, ciphering
      and deciphering, should use the same charset or original text won't be properly
      recovered.
     :param _database_path: Absolute pathname to database file. Usually you don't
      set this parameter, but it is useful for tests.
-    :return: Caesar key found.
+    :return: Affine key found.
     """
     key_space_length = len(charset) ** 2
     return simple_brute_force_mp(_analize_text,
