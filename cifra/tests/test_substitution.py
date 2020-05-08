@@ -23,11 +23,11 @@ TEST_KEY = "LFWOAYUISVKMNXPBDCRJTQEGHZlfwoayuisvkmnxpbdcrjtqeghz"
 
 @pytest.mark.quick_test
 def test_cipher():
-    ciphered_text = substitution.cipher(ORIGINAL_MESSAGE, TEST_KEY)
+    ciphered_text = substitution.cipher(ORIGINAL_MESSAGE, TEST_KEY, charset=TEST_CHARSET)
     assert ciphered_text == CIPHERED_MESSAGE
 
 
 @pytest.mark.quick_test
 def test_decipher():
-    deciphered_text = substitution.decipher(CIPHERED_MESSAGE, TEST_KEY)
+    deciphered_text = substitution.decipher(CIPHERED_MESSAGE, TEST_KEY, charset=TEST_CHARSET)
     assert deciphered_text == ORIGINAL_MESSAGE
