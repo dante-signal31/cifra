@@ -31,3 +31,21 @@ def test_cipher():
 def test_decipher():
     deciphered_text = substitution.decipher(CIPHERED_MESSAGE, TEST_KEY, charset=TEST_CHARSET)
     assert deciphered_text == ORIGINAL_MESSAGE
+
+
+@pytest.mark.quick_test
+def test_wrong_length_key_are_detected():
+    TEST_CHARSET = "123"
+    WRONG_KEY = "1234"
+    with pytest.raises(substitution.WrongSubstitutionKey) as e:
+        _ = substitution.cipher("", WRONG_KEY, TEST_CHARSET)
+    assert e.value.get_cause()[0] == substitution.WrongSubstitutionKeyCauses.wrong_key_length
+
+
+@pytest.mark.quick_test
+def test_repeated_character_keys_are_detected():
+    TEST_CHARSET = "123"
+    WRONG_KEY = "122"
+    with pytest.raises(substitution.WrongSubstitutionKey) as e:
+        _ = substitution.cipher("", WRONG_KEY, TEST_CHARSET)
+    assert e.value.get_cause()[0] == substitution.WrongSubstitutionKeyCauses.repeated_characters
