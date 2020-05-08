@@ -1,0 +1,33 @@
+"""
+Tests for cipher.substitution module.
+"""
+import pytest
+import cipher.substitution as substitution
+
+TEST_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+ORIGINAL_MESSAGE = """If a man is offered a fact which goes against his
+instincts, he will scrutinize it closely, and unless the evidence
+is overwhelming, he will refuse to believe it. If, on the other
+hand, he is offered something which affords a reason for acting
+    in accordance to his instincts, he will accept it even on the
+slightest evidence. The origin of myths is explained in this way.
+-Bertrand Russell"""
+CIPHERED_MESSAGE = """Sy l nlx sr pyyacao l ylwj eiswi upar lulsxrj isr sxrjsxwjr, ia esmm
+rwctjsxsza sj wmpramh, lxo txmarr jia aqsoaxwa sr pqaceiamnsxu, ia esmm caytra
+jp famsaqa sj. Sy, px jia pjiac ilxo, ia sr pyyacao rpnajisxu eiswi lyypcor
+l calrpx ypc lwjsxu sx lwwpcolxwa jp isr sxrjsxwjr, ia esmm lwwabj sj aqax
+px jia rmsuijarj aqsoaxwa. Jia pcsusx py nhjir sr agbmlsxao sx jisr elh.
+-Facjclxo Ctrramm"""
+TEST_KEY = "LFWOAYUISVKMNXPBDCRJTQEGHZlfwoayuisvkmnxpbdcrjtqeghz"
+
+
+@pytest.mark.quick_test
+def test_cipher():
+    ciphered_text = substitution.cipher(ORIGINAL_MESSAGE, TEST_KEY)
+    assert ciphered_text == CIPHERED_MESSAGE
+
+
+@pytest.mark.quick_test
+def test_decipher():
+    deciphered_text = substitution.decipher(CIPHERED_MESSAGE, TEST_KEY)
+    assert deciphered_text == ORIGINAL_MESSAGE
