@@ -58,7 +58,8 @@ def cipher(text: str, key: str, charset: str = DEFAULT_CHARSET) -> str:
      recovered.
     :return: Ciphered text.
     """
-    raise NotImplementedError
+    return "".join(map(lambda char: key[charset.index(char)] if char in charset else char,
+                       (char for char in text)))
 
 
 @check_substitution_key
@@ -76,7 +77,8 @@ def decipher(ciphered_text: str, key: str, charset: str = DEFAULT_CHARSET) -> st
     use the same charset or original text won't be properly recovered.
     :return: Deciphered text.
     """
-    raise NotImplementedError
+    return "".join(map(lambda char: charset[key.index(char)] if char in key else char,
+                       (char for char in ciphered_text)))
 
 
 
