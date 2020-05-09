@@ -2,7 +2,7 @@
 Library to cipher and decipher texts using Affine method.
 """
 import random
-import sys
+# import sys
 from enum import Enum, auto
 from cifra.cipher.common import DEFAULT_CHARSET, Ciphers, _offset_text
 from cifra.cipher.cryptomath import gcd

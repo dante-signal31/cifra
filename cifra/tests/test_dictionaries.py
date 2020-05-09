@@ -12,7 +12,7 @@ from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
-    IdentifiedLanguage
+    IdentifiedLanguage, get_word_pattern
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat"],
@@ -251,6 +251,14 @@ def test_get_words_from_text(text_with_punctuation_marks: str, text_without_punc
 def test_get_dictionaries_names(loaded_dictionaries: LoadedDictionaries):
     dictionaries_names = Dictionary.get_dictionaries_names(_database_path=loaded_dictionaries.temp_dir)
     assert dictionaries_names == loaded_dictionaries.languages
+
+
+@pytest.mark.quick_test
+def test_get_word_pattern():
+    word = "HGHHU"
+    expected_word_pattern = "0.1.0.0.2"
+    word_pattern = get_word_pattern(word)
+    assert expected_word_pattern == word_pattern
 
 
 @pytest.mark.quick_test

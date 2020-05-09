@@ -8,6 +8,7 @@ A dictionary is a repository of distinct words present in an actual language.
 # behaviour at python 4.0, but nowadays, you need to import it from
 # __future__.
 from __future__ import annotations
+import collections
 import contextlib
 import dataclasses
 import re
@@ -203,7 +204,7 @@ class Dictionary(object):
 
 
 def get_words_from_text_file(file_pathname: str) -> Set[str]:
-    """extract words from given file.
+    """ Extract words from given file.
 
     :param file_pathname: Absolute filename to file to be read.
     :return: A set of words normalized to lowercase and without any punctuation mark.
@@ -227,6 +228,22 @@ def get_words_from_text(text: str) -> Set[str]:
     lowercase_text = text.lower()
     words = set(re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text))
     return words
+
+
+def get_word_pattern(word: str) -> str:
+    """ Get word pattern.
+
+    This pattern is useful to break substitution cipher.
+
+    :param word: Word to get pattern for.
+    :return: Word pattern.
+    """
+    char_order = collections.OrderedDict()
+    for char in word:
+        char_order.setdefault(char, None)
+    chars_indexed = list(char_order.keys())
+    pattern = list(map(lambda char: chars_indexed.index(char), (char for char in word)))
+    return ".".join(map(str, pattern))
 
 
 @dataclasses.dataclass
