@@ -188,6 +188,19 @@ def test_cwd_word(temp_dir):
 
 
 @pytest.mark.quick_test
+def test_store_word_pattern(temp_dir):
+    """Test word pattern is properly stored at database."""
+    word = "classification"
+    with Dictionary.open("test", create=True, _database_path=temp_dir) as test_dictionary:
+        assert not test_dictionary.word_exists(word)
+        test_dictionary.add_word(word)
+        assert test_dictionary.word_exists(word)
+        words = test_dictionary.get_words_with_pattern("0.1.2.3.3.4.5.4.0.2.6.4.7.8")
+        assert word in words
+
+
+
+@pytest.mark.quick_test
 def test_create_language(temp_dir):
     """Test a new language creation at database."""
     english_dictionary = Dictionary("english", database_path=temp_dir)

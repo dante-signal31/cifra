@@ -37,6 +37,7 @@ class Word(Base):
 
     id = Column(Integer, primary_key=True)
     word = Column(String, nullable=False)
+    word_pattern = Column(String, nullable=False)
     language_id = Column(Integer, ForeignKey('languages.id'))
     language = relationship("Language",
                             back_populates="words")

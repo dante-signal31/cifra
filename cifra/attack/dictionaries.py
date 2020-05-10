@@ -123,6 +123,7 @@ class Dictionary(object):
         :param word: word to add to dictionary.
         """
         database_word = database.Word(word=word, language=self._language_mapper,
+                                      word_pattern=get_word_pattern(word),
                                       language_id=self._language_mapper.id)
         self._language_mapper.words.add(database_word)
         self._connection.commit()
@@ -134,6 +135,7 @@ class Dictionary(object):
         """
         self._language_mapper.words.update((database.Word(word=word,
                                                           language=self._language_mapper,
+                                                          word_pattern=get_word_pattern(word),
                                                           language_id=self._language_mapper.id)
                                             for word in words))
         self._connection.commit()
@@ -175,6 +177,17 @@ class Dictionary(object):
                 .filter(database.Word.word == word)\
                 .first()
             return words is not None
+
+    def get_words_with_pattern(self, pattern: str) -> List[str]:
+        """ Get a list of every word with given pattern.
+
+        :param pattern: Word patter to search for.
+        :return: List of words at dictionary with given pattern.
+        """
+        words = list(
+            map(lambda entry: entry.word,
+                filter(lambda entry: entry.word_pattern == pattern, self._language_mapper.words)))
+        return words
 
     def populate(self, file_pathname: str) -> None:
         """ Read a file's words and stores them at this language database.
