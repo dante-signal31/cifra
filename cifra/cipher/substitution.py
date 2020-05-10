@@ -28,7 +28,12 @@ class WrongSubstitutionKey(Exception):
 
 
 def check_substitution_key(func):
-    """ Decorator to check used key is a valid one for substitution method with this charset. """
+    """ Decorator to check used key is a valid one for substitution method with this charset.
+
+    :raises substitution.WrongSubstitutionKey: If key is not valid. Call get_cause()
+        from exception object to get a tuple with a WrongSubstitutionKeyCauses enum, and
+        an explanatory message.
+    """
     @wraps(func)
     def wrapped(text: str, key: str, charset: str):
         if len(key) != len(charset):
