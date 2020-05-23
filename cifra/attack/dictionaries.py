@@ -178,6 +178,17 @@ class Dictionary(object):
                 .first()
             return words is not None
 
+    def get_words_presence(self, words: Set[str]) -> float:
+        """ Get how many words of given set are really present in this dictionary.
+
+        :param words: Set of words.
+        :return: A float between 0 and 1 being 1 as every word in set is present at dictionary.
+        """
+        total_words = len(words)
+        current_hits = sum(1 if self.word_exists(word) else 0 for word in words)
+        presence = current_hits / total_words
+        return presence
+
     def get_words_with_pattern(self, pattern: str) -> List[str]:
         """ Get a list of every word with given pattern.
 
@@ -300,12 +311,10 @@ def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = N
            from 0 to 1. The higher the frequency of presence of words in language
            the higher of this probability.
     """
-    total_words = len(words)
     candidates = {}
     for language in Dictionary.get_dictionaries_names(_database_path):
         with Dictionary.open(language, _database_path=_database_path) as dictionary:
-            current_hits = sum(1 if dictionary.word_exists(word) else 0 for word in words)
-            candidates[language] = current_hits / total_words
+            candidates[language] = dictionary.get_words_presence(words)
     return candidates
 
 
