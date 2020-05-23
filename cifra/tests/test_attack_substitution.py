@@ -51,25 +51,31 @@ def test_init_mapping():
     recovered_mapping = attack_substitution._init_mapping(TEST_CHARSET)
     assert expected_mapping == recovered_mapping
 
+
 @pytest.mark.quick_test
 def test_get_possible_mappings():
-    mapping = {"1": ["a", "b"],
-               "2": ["c"],
-               "3": ["d"],
-               "4": ["e", "f"]}
-    expected_list = [{"1": ["a"],
-                      "2": ["c"],
-                      "3": ["d"],
-                      "4": ["e"]}, {"1": ["a"],
-                                    "2": ["c"],
-                                    "3": ["d"],
-                                    "4": ["f"]}, {"1": ["b"],
-                                                  "2": ["c"],
-                                                  "3": ["d"],
-                                                  "4": ["e"]}, {"1": ["b"],
-                                                                "2": ["c"],
-                                                                "3": ["d"],
-                                                                "4": ["f"]}]
+    mapping = {"1": {"a", "b"},
+               "2": {"c"},
+               "3": {"d"},
+               "4": {"e", "f"},
+               "5": {"g"}}
+    expected_list = [{"1": {"a"},
+                      "2": {"c"},
+                      "3": {"d"},
+                      "4": {"e"},
+                      "5": {"g"}}, {"1": {"a"},
+                                    "2": {"c"},
+                                    "3": {"d"},
+                                    "4": {"f"},
+                                    "5": {"g"}}, {"1": {"b"},
+                                                  "2": {"c"},
+                                                  "3": {"d"},
+                                                  "4": {"e"},
+                                                  "5": {"g"}}, {"1": {"b"},
+                                                                "2": {"c"},
+                                                                "3": {"d"},
+                                                                "4": {"f"},
+                                                                "5": {"g"}}]
     recovered_mappings = attack_substitution._get_possible_mappings(mapping)
-    assert all(_mapping in recovered_mappings for _mapping in expected_list) \
-           and len(expected_list) == len(recovered_mappings)
+    assert all(_mapping in recovered_mappings for _mapping in expected_list)
+    assert len(expected_list) == len(recovered_mappings)

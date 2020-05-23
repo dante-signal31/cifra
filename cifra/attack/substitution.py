@@ -9,7 +9,7 @@ the good one comparing it with words from a language dictionary. If original
 message was in a language you don't have a dictionary for, then correct key
 won't be detected.
 """
-from typing import Optional, Dict, Set
+from typing import Optional, Dict, Set, List
 from cifra.attack.dictionaries import get_words_from_text, get_word_pattern, Dictionary
 from cifra.cipher.common import DEFAULT_CHARSET
 
@@ -62,13 +62,26 @@ def _init_mapping(charset: str = DEFAULT_CHARSET) -> Dict[str, Set[str]]:
     return returned_dict
 
 
-def _get_possible_mappings(mapping: Dict[str, Set[str]]) -> Set[Dict[str, Set[str]]]:
+def _get_possible_mappings(mapping: Dict[str, Set[str]]) -> List[Dict[str, Set[str]]]:
     """ Return every possible mapping from an unresolved mapping.
 
-    An unresolved mapping is one that has mor than one possibility in any of
+    An unresolved mapping is one that has more than one possibility in any of
     its chars.
 
     :param mapping: A character mapping.
     :return: A list of mapping candidates.
     """
-    raise NotImplementedError
+    try:
+        char, candidates = mapping.popitem()
+    except KeyError:
+        return [dict(), ]
+    else:
+        mapping_to_return = []
+        partial_mappings = _get_possible_mappings(mapping)
+        for candidate in candidates:
+            for partial_mapping in partial_mappings:
+                current_mapping = {char: {candidate}}
+                current_mapping.update(partial_mapping)
+                mapping_to_return.append(current_mapping)
+        return mapping_to_return
+
