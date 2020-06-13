@@ -53,6 +53,34 @@ def test_init_mapping():
 
 
 @pytest.mark.quick_test
+def test_mapping_equality():
+    mapping_content = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"e", "f"},
+                       "5": {"g", "h"}}
+    mapping1 = attack_substitution.Mapping.new_mapping(mapping_content)
+    mapping2 = attack_substitution.Mapping.new_mapping(mapping_content)
+    assert mapping1 == mapping2
+
+
+@pytest.mark.quick_test
+def test_mapping_inequality():
+    mapping_content = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"e", "f"},
+                       "5": {"g", "h"}}
+    mapping_content2 = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"e", "f"}}
+    mapping1 = attack_substitution.Mapping.new_mapping(mapping_content)
+    mapping2 = attack_substitution.Mapping.new_mapping(mapping_content2)
+    assert mapping1 != mapping2
+
+
+@pytest.mark.quick_test
 def test_get_possible_mappings():
     mapping_content = {"1": {"a", "b"},
                        "2": {"c"},
@@ -100,7 +128,7 @@ def test_get_possible_mappings():
         _mapping.load_content(expected_list_content[index])
     recovered_mappings = mapping.get_possible_mappings()
     assert len(expected_list) == len(recovered_mappings)
-    assert all(_mapping.get_current_content() in recovered_mappings for _mapping in expected_list)
+    assert all(_mapping in recovered_mappings for _mapping in expected_list)
 
 
 @pytest.mark.quick_test
@@ -160,7 +188,7 @@ def test_get_possible_mappings_with_empties():
         _mapping.load_content(expected_list_content[index])
     recovered_mappings = mapping.get_possible_mappings()
     assert len(expected_list) == len(recovered_mappings)
-    assert all(_mapping.get_current_content() in recovered_mappings for _mapping in expected_list)
+    assert all(_mapping in recovered_mappings for _mapping in expected_list)
 
 
 @pytest.mark.quick_test

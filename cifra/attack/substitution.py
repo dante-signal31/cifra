@@ -159,6 +159,7 @@ class Mapping(object):
         :return: A Mapping class instance.
         """
         self._mapping = dict()
+        self._charset = charset
         for char in charset:
             self._mapping[char] = set()
 
@@ -185,6 +186,9 @@ class Mapping(object):
     def __setitem__(self, key, value):
         self._mapping[key] = value
 
+    def __eq__(self, other):
+        return self.get_current_content() == other.get_current_content()
+
     def load_content(self, mapping_dict: Dict[str, Set[str]]) -> None:
         """ Populates this mapping using a dict.
 
@@ -196,7 +200,7 @@ class Mapping(object):
         :param mapping_dict: Content to load.
         """
         for key, value_set in mapping_dict.items():
-            if key in self._mapping:
+            if key in self._mapping and not value_set == set():
                 self._mapping[key] = copy.deepcopy(value_set)
 
     def get_current_content(self) -> Dict[str, Set[str]]:
@@ -225,6 +229,8 @@ class Mapping(object):
         """
         return "".join(value_set.pop() if value_set != set() else key for key, value_set in self._mapping.items())
 
+    def popitem(self) -> (str, Set[str]):
+        return self._mapping.popitem()
 
     def get_possible_mappings(self, mapping: Mapping = None) -> List[Mapping]:
         """ Return every possible mapping from an unresolved mapping.
@@ -236,26 +242,26 @@ class Mapping(object):
         :return: A list of mapping candidates.
         """
         if mapping is None:
-            mapping = self._mapping
+            mapping = Mapping.new_mapping(self._mapping)
         try:
             char, candidates = mapping.popitem()
         except KeyError:
-            return [dict(), ]
+            return [Mapping(charset=self._charset), ]
         else:
-            mapping_to_return = []
+            mapping_list = []
             partial_mappings = self.get_possible_mappings(mapping)
             if not candidates == set():
                 for candidate in candidates:
                     for partial_mapping in partial_mappings:
-                        current_mapping = {char: {candidate}}
-                        current_mapping.update(partial_mapping)
-                        mapping_to_return.append(current_mapping)
+                        current_mapping = Mapping.new_mapping({char: {candidate}}, charset=self._charset)
+                        current_mapping.load_content(partial_mapping.get_current_content())
+                        mapping_list.append(current_mapping)
             else:
                 for partial_mapping in partial_mappings:
-                    current_mapping = {char: set()}
-                    current_mapping.update(partial_mapping)
-                    mapping_to_return.append(current_mapping)
-            return mapping_to_return
+                    current_mapping = Mapping.new_mapping({char: set()}, charset=self._charset)
+                    current_mapping.load_content(partial_mapping.get_current_content())
+                    mapping_list.append(current_mapping)
+            return mapping_list
 
     def reduce_mapping(self, word_mapping: Mapping) -> None:
         """ Apply given word mapping to reduce this mapping.
