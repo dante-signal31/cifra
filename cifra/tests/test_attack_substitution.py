@@ -48,34 +48,161 @@ def test_init_mapping():
                         'n': set(), 'o': set(), 'p': set(), 'q': set(), 'r': set(), 's': set(), 't': set(),
                         'u': set(), 'v': set(), 'w': set(), 'x': set(), 'y': set(), 'z': set(),
                         }
-    recovered_mapping = attack_substitution._init_mapping(TEST_CHARSET)
-    assert expected_mapping == recovered_mapping
+    recovered_mapping = attack_substitution.Mapping(TEST_CHARSET)
+    assert recovered_mapping.get_current_content() == expected_mapping
 
 
 @pytest.mark.quick_test
 def test_get_possible_mappings():
-    mapping = {"1": {"a", "b"},
-               "2": {"c"},
-               "3": {"d"},
-               "4": {"e", "f"},
-               "5": {"g"}}
-    expected_list = [{"1": {"a"},
-                      "2": {"c"},
-                      "3": {"d"},
-                      "4": {"e"},
-                      "5": {"g"}}, {"1": {"a"},
-                                    "2": {"c"},
-                                    "3": {"d"},
-                                    "4": {"f"},
-                                    "5": {"g"}}, {"1": {"b"},
-                                                  "2": {"c"},
-                                                  "3": {"d"},
-                                                  "4": {"e"},
-                                                  "5": {"g"}}, {"1": {"b"},
-                                                                "2": {"c"},
-                                                                "3": {"d"},
-                                                                "4": {"f"},
-                                                                "5": {"g"}}]
-    recovered_mappings = attack_substitution._get_possible_mappings(mapping)
-    assert all(_mapping in recovered_mappings for _mapping in expected_list)
+    mapping_content = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"e", "f"},
+                       "5": {"g", "h"}}
+    mapping = attack_substitution.Mapping()
+    mapping.load_content(mapping_content)
+    expected_list_content = [{"1": {"a"},
+                              "2": {"c"},
+                              "3": {"d"},
+                              "4": {"e"},
+                              "5": {"g"}}, {"1": {"a"},
+                                            "2": {"c"},
+                                            "3": {"d"},
+                                            "4": {"f"},
+                                            "5": {"g"}}, {"1": {"b"},
+                                                          "2": {"c"},
+                                                          "3": {"d"},
+                                                          "4": {"e"},
+                                                          "5": {"g"}}, {"1": {"b"},
+                                                                        "2": {"c"},
+                                                                        "3": {"d"},
+                                                                        "4": {"f"},
+                                                                        "5": {"g"}},
+                             {"1": {"a"},
+                              "2": {"c"},
+                              "3": {"d"},
+                              "4": {"e"},
+                              "5": {"h"}}, {"1": {"a"},
+                                            "2": {"c"},
+                                            "3": {"d"},
+                                            "4": {"f"},
+                                            "5": {"h"}}, {"1": {"b"},
+                                                          "2": {"c"},
+                                                          "3": {"d"},
+                                                          "4": {"e"},
+                                                          "5": {"h"}}, {"1": {"b"},
+                                                                        "2": {"c"},
+                                                                        "3": {"d"},
+                                                                        "4": {"f"},
+                                                                        "5": {"h"}}]
+    expected_list = [attack_substitution.Mapping() for _ in range(len(expected_list_content))]
+    for index, _mapping in enumerate(expected_list):
+        _mapping.load_content(expected_list_content[index])
+    recovered_mappings = mapping.get_possible_mappings()
     assert len(expected_list) == len(recovered_mappings)
+    assert all(_mapping.get_current_content() in recovered_mappings for _mapping in expected_list)
+
+
+@pytest.mark.quick_test
+def test_get_possible_mappings_with_empties():
+    mapping_content = {"1": {"a", "b"},
+                       "1.5": set(),
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"e", "f"},
+                       "5": {"g", "h"}}
+    mapping = attack_substitution.Mapping()
+    mapping.load_content(mapping_content)
+    expected_list_content = [{"1": {"a"},
+                              "1.5": set(),
+                              "2": {"c"},
+                              "3": {"d"},
+                              "4": {"e"},
+                              "5": {"g"}}, {"1": {"a"},
+                                            "1.5": set(),
+                                            "2": {"c"},
+                                            "3": {"d"},
+                                            "4": {"f"},
+                                            "5": {"g"}}, {"1": {"b"},
+                                                          "1.5": set(),
+                                                          "2": {"c"},
+                                                          "3": {"d"},
+                                                          "4": {"e"},
+                                                          "5": {"g"}}, {"1": {"b"},
+                                                                        "1.5": set(),
+                                                                        "2": {"c"},
+                                                                        "3": {"d"},
+                                                                        "4": {"f"},
+                                                                        "5": {"g"}},
+                             {"1": {"a"},
+                              "1.5": set(),
+                              "2": {"c"},
+                              "3": {"d"},
+                              "4": {"e"},
+                              "5": {"h"}}, {"1": {"a"},
+                                            "1.5": set(),
+                                            "2": {"c"},
+                                            "3": {"d"},
+                                            "4": {"f"},
+                                            "5": {"h"}}, {"1": {"b"},
+                                                          "1.5": set(),
+                                                          "2": {"c"},
+                                                          "3": {"d"},
+                                                          "4": {"e"},
+                                                          "5": {"h"}}, {"1": {"b"},
+                                                                        "1.5": set(),
+                                                                        "2": {"c"},
+                                                                        "3": {"d"},
+                                                                        "4": {"f"},
+                                                                        "5": {"h"}}]
+    expected_list = [attack_substitution.Mapping() for _ in range(len(expected_list_content))]
+    for index, _mapping in enumerate(expected_list):
+        _mapping.load_content(expected_list_content[index])
+    recovered_mappings = mapping.get_possible_mappings()
+    assert len(expected_list) == len(recovered_mappings)
+    assert all(_mapping.get_current_content() in recovered_mappings for _mapping in expected_list)
+
+
+@pytest.mark.quick_test
+def test_reduce_mapping():
+    mapping_content = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"e", "f", "g"},
+                       "5": {"h"}}
+    mapping_content_2 = {"1": {"a"},
+                         "2": {"c"},
+                         "4": {"e", "g"},
+                         "5": {"h"}}
+    expected_reduced_mapping = {"1": {"a"},
+                                "2": {"c"},
+                                "3": {"d"},
+                                "4": {"e", "g"},
+                                "5": {"h"}}
+    mapping = attack_substitution.Mapping.new_mapping(mapping_content)
+    mapping2 = attack_substitution.Mapping.new_mapping(mapping_content_2)
+    expected_mapping = attack_substitution.Mapping.new_mapping(expected_reduced_mapping)
+    mapping.reduce_mapping(mapping2)
+    assert mapping.get_current_content() == expected_mapping.get_current_content()
+
+
+@pytest.mark.quick_test
+def test_generate_key_string():
+    mapping_content = {"a": {"f"},
+                       "b": {"g"},
+                       "c": {"h"},
+                       "d": {"i"},
+                       "e": {"j"}}
+    expected_keystring = "ABCDEFGHIJKLMNOPQRSTUVWXYZfghijfghijklmnopqrstuvwxyz"
+    TEST_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    mapping = attack_substitution.Mapping.new_mapping(mapping_content, charset=TEST_CHARSET)
+    returned_keystring = mapping.generate_key_string()
+    assert returned_keystring == expected_keystring
+
+
+@pytest.mark.quick_test
+def test_get_used_charset():
+    text = "aaabb cd eef g"
+    expected_charset = set("abcdefg")
+    returned_charset = attack_substitution._get_used_charset(text)
+    assert returned_charset == expected_charset

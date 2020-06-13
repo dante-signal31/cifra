@@ -275,7 +275,7 @@ class IdentifiedLanguage:
     """ Language selected as more likely to be the one the message is written into.
 
     * winner: Name of language more likely. If None the no proper language was found.
-    * winner_probability: Probability this language is actually de right one. If None the no proper language was found.
+    * winner_probability: Probability this language is actually the right one. If None the no proper language was found.
     * candidates: Dict with all languages probabilities. Probabilities are floats from 0 to 1.
     """
     winner: Optional[str]
@@ -313,10 +313,26 @@ def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = N
     """
     candidates = {}
     for language in Dictionary.get_dictionaries_names(_database_path):
-        with Dictionary.open(language, _database_path=_database_path) as dictionary:
-            candidates[language] = dictionary.get_words_presence(words)
+        # with Dictionary.open(language, _database_path=_database_path) as dictionary:
+        #     candidates[language] = dictionary.get_words_presence(words)
+        candidates[language] = get_candidates_frequency_at_language(words, language)
     return candidates
 
+
+def get_candidates_frequency_at_language(words: Set[str], language: str, _database_path: Optional[str] = None) -> float:
+    """ Get frequency of presence of words in given language.
+
+    :param words: Text words.
+    :param language: Language you want to look into.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :return: Float from 0 to 1. The higher the frequency of presence of words in language
+        the higher of this probability.
+    """
+    frequency = 0
+    with Dictionary.open(language, _database_path=_database_path) as dictionary:
+        frecuency = dictionary.get_words_presence(words)
+    return frecuency
 
 def _get_winner(candidates: Dict[str, float]) -> str:
     """ Return candidate with highest frequency.
