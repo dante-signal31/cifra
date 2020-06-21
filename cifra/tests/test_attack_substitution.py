@@ -10,6 +10,10 @@ from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionarie
 from cifra.tests.test_substitution import ORIGINAL_MESSAGE, CIPHERED_MESSAGE, \
     TEST_KEY, TEST_CHARSET
 
+
+TEST_CHARSET_SPANISH = "abcdefghijklmnopqrstuvwxyzáéíóúñ"
+TEST_KEY_SPANISH =     "lfwoayuisvkmnxpbdcrjtqeghzñúóíéá"
+
 ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS = "resources/english_book_c1.txt"
 SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS = "resources/spanish_book_c1.txt"
 
@@ -34,28 +38,24 @@ SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS = "resources/spanish_book_c1.txt"
 
 
 @pytest.mark.slow_test
-@pytest.mark.parametrize("text_file,language",
-                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
-                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
+@pytest.mark.parametrize("text_file,language, key, charset",
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english", TEST_KEY, TEST_CHARSET),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish", TEST_KEY_SPANISH, TEST_CHARSET_SPANISH)],
                          ids=["english", "spanish"])
-def test_hack_substitution(loaded_dictionaries: LoadedDictionaries, text_file: str, language: str):
+def test_hack_substitution(loaded_dictionaries: LoadedDictionaries, text_file: str, language: str, key: str, charset: str):
     text_file_pathname = os.path.join(os.getcwd(), "cifra", "tests", text_file)
     with open(text_file_pathname) as text_file:
         clear_text = text_file.read()
-        ciphered_text = substitution.cipher(clear_text, TEST_KEY, TEST_CHARSET)
+        ciphered_text = substitution.cipher(clear_text, key, charset)
     found_key = attack_substitution.hack_substitution(ciphered_text,
-                                                      TEST_CHARSET,
+                                                      charset,
                                                       _database_path=loaded_dictionaries.temp_dir)
-    assert TEST_KEY == found_key
+    assert key == found_key[0]
 
 
 @pytest.mark.quick_test
 def test_init_mapping():
-    expected_mapping = {'A': set(), 'B': set(), 'C': set(), 'D': set(), 'E': set(), 'F': set(), 'G': set(),
-                        'H': set(), 'I': set(), 'J': set(), 'K': set(), 'L': set(), 'M': set(),
-                        'N': set(), 'O': set(), 'P': set(), 'Q': set(), 'R': set(), 'S': set(), 'T': set(),
-                        'U': set(), 'V': set(), 'W': set(), 'X': set(), 'Y': set(), 'Z': set(),
-                        'a': set(), 'b': set(), 'c': set(), 'd': set(), 'e': set(), 'f': set(), 'g': set(),
+    expected_mapping = {'a': set(), 'b': set(), 'c': set(), 'd': set(), 'e': set(), 'f': set(), 'g': set(),
                         'h': set(), 'i': set(), 'j': set(), 'k': set(), 'l': set(), 'm': set(),
                         'n': set(), 'o': set(), 'p': set(), 'q': set(), 'r': set(), 's': set(), 't': set(),
                         'u': set(), 'v': set(), 'w': set(), 'x': set(), 'y': set(), 'z': set(),

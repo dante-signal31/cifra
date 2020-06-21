@@ -68,6 +68,7 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
             best_key = key
     return best_key, best_probability
 
+
 def _get_used_charset(text: str) -> Set[str]:
     """ Get a set with single chars used in text.
 
@@ -80,55 +81,6 @@ def _get_used_charset(text: str) -> Set[str]:
         new_set = set(word)
         used_charset |= new_set
     return used_charset
-
-# def _reduce_global_mapping(global_mapping: Dict[str, Dict[str, Set[str]]], language: str, word_mapping: Dict[str, Set[str]]) -> None:
-#     """ Apply given word mapping to reduce global mapping.
-#
-#     :param global_mapping: Current global mapping for analyzed cipher words so far.
-#     :param language: Current language assesed.
-#     :param word_mapping: Partial mapping for an individual word.
-#     """
-#     for key in global_mapping[language].keys():
-#         if len(global_mapping[language][key]) > 1 and word_mapping[key]:  # Both set are not empty.
-#             global_mapping[language][key] &= word_mapping[key]
-#         elif not global_mapping[language][key] and word_mapping[key]:
-#             global_mapping[language][key] = word_mapping[key].copy()
-
-# def _init_mapping(charset: str = DEFAULT_CHARSET) -> Dict[str, Set[str]]:
-#     """ Create empty mapping for cipher letters
-#
-#     :param text: Ciphered text to extract letters from.
-#     :return: A dict whose keys are letters and values are sets with subtitution
-#         letter candidates.
-#     """
-#     returned_dict = dict()
-#     for char in charset:
-#         returned_dict[char] = set()
-#     return returned_dict
-
-
-# def _get_possible_mappings(mapping: Dict[str, Set[str]]) -> List[Dict[str, Set[str]]]:
-#     """ Return every possible mapping from an unresolved mapping.
-#
-#     An unresolved mapping is one that has more than one possibility in any of
-#     its chars.
-#
-#     :param mapping: A character mapping.
-#     :return: A list of mapping candidates.
-#     """
-#     try:
-#         char, candidates = mapping.popitem()
-#     except KeyError:
-#         return [dict(), ]
-#     else:
-#         mapping_to_return = []
-#         partial_mappings = _get_possible_mappings(mapping)
-#         for candidate in candidates:
-#             for partial_mapping in partial_mappings:
-#                 current_mapping = {char: {candidate}}
-#                 current_mapping.update(partial_mapping)
-#                 mapping_to_return.append(current_mapping)
-#         return mapping_to_return
 
 
 def _assess_substitution_key(ciphered_text: str, key: str, language: str, charset: str,

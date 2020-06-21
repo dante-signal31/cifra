@@ -3,7 +3,8 @@ Library to cipher and decipher texts using substitution method.
 """
 from enum import Enum, auto
 from functools import wraps
-from common import DEFAULT_CHARSET
+
+DEFAULT_CHARSET = "abcdefghijklmnopqrstuvwxyz"
 
 
 class WrongSubstitutionKeyCauses(Enum):
@@ -53,6 +54,9 @@ def cipher(text: str, key: str, charset: str = DEFAULT_CHARSET) -> str:
     dataset. For instance, if you are ciphering an spanish text, you should use
     a charset with "ñ" character.
 
+    This module uses only lowercase charsets. That means that caps will be kept
+    but lowercase and uppercase will follow ths same substitutions.
+
     :param text: Text to be ciphered.
     :param key: Secret key. In substitution method it corresponds with how to
      substitute each character in the charset. Both ends should know this and
@@ -63,8 +67,17 @@ def cipher(text: str, key: str, charset: str = DEFAULT_CHARSET) -> str:
      recovered.
     :return: Ciphered text.
     """
-    return "".join(map(lambda char: key[charset.index(char)] if char in charset else char,
-                       (char for char in text)))
+    ciphered_chars = []
+    for char in text:
+        if char.lower() in charset:
+            ciphered_char = key[charset.index(char.lower())] if char.islower() \
+                else key[charset.index(char.lower())].upper()
+        else:
+            ciphered_char = char
+        ciphered_chars.append(ciphered_char)
+    return "".join(ciphered_chars)
+    # return "".join(map(lambda char: key[charset.index(char)] if char in charset else char,
+    #                    (char for char in text)))
 
 
 @check_substitution_key
@@ -82,8 +95,17 @@ def decipher(ciphered_text: str, key: str, charset: str = DEFAULT_CHARSET) -> st
     use the same charset or original text won't be properly recovered.
     :return: Deciphered text.
     """
-    return "".join(map(lambda char: charset[key.index(char)] if char in key else char,
-                       (char for char in ciphered_text)))
+    deciphered_chars = []
+    for ciphered_char in ciphered_text:
+        if ciphered_char.lower() in key:
+            char = charset[key.index(ciphered_char.lower())] if ciphered_char.islower() \
+                else charset[key.index(ciphered_char.lower())].upper()
+        else:
+            char = ciphered_char
+        deciphered_chars.append(char)
+    return "".join(deciphered_chars)
+    # return "".join(map(lambda char: charset[key.index(char)] if char in key else char,
+    #                    (char for char in ciphered_text)))
 
 
 

@@ -4,8 +4,8 @@ Tests for cipher.substitution module.
 import pytest
 import cipher.substitution as substitution
 
-TEST_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-TEST_KEY =     "LFWOAYUISVKMNXPBDCRJTQEGHZlfwoayuisvkmnxpbdcrjtqeghz"
+TEST_CHARSET = "abcdefghijklmnopqrstuvwxyz"
+TEST_KEY =     "lfwoayuisvkmnxpbdcrjtqeghz"
 ORIGINAL_MESSAGE = "If a man is offered a fact which goes against his " \
                    "instincts, he will scrutinize it closely, and unless " \
                    "the evidence is overwhelming, he will refuse to believe " \
