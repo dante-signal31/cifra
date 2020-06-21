@@ -1,6 +1,7 @@
 """
 Tests for cipher.substitution module.
 """
+import os
 import pytest
 
 import cifra.attack.substitution as attack_substitution
@@ -8,6 +9,9 @@ import cifra.cipher.substitution as substitution
 from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionaries
 from cifra.tests.test_substitution import ORIGINAL_MESSAGE, CIPHERED_MESSAGE, \
     TEST_KEY, TEST_CHARSET
+
+ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS = "resources/english_book_c1.txt"
+SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS = "resources/spanish_book_c1.txt"
 
 # TEST_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 # ORIGINAL_MESSAGE = "If a man is offered a fact which goes against his " \
@@ -30,8 +34,16 @@ from cifra.tests.test_substitution import ORIGINAL_MESSAGE, CIPHERED_MESSAGE, \
 
 
 @pytest.mark.slow_test
-def test_hack_substitution(loaded_dictionaries: LoadedDictionaries):
-    found_key = attack_substitution.hack_substitution(CIPHERED_MESSAGE,
+@pytest.mark.parametrize("text_file,language",
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
+                         ids=["english", "spanish"])
+def test_hack_substitution(loaded_dictionaries: LoadedDictionaries, text_file: str, language: str):
+    text_file_pathname = os.path.join(os.getcwd(), "cifra", "tests", text_file)
+    with open(text_file_pathname) as text_file:
+        clear_text = text_file.read()
+        ciphered_text = substitution.cipher(clear_text, TEST_KEY, TEST_CHARSET)
+    found_key = attack_substitution.hack_substitution(ciphered_text,
                                                       TEST_CHARSET,
                                                       _database_path=loaded_dictionaries.temp_dir)
     assert TEST_KEY == found_key
@@ -216,11 +228,11 @@ def test_reduce_mapping():
 
 @pytest.mark.quick_test
 def test_generate_key_string():
-    mapping_content = {"a": {"f"},
-                       "b": {"g"},
-                       "c": {"h"},
-                       "d": {"i"},
-                       "e": {"j"}}
+    mapping_content = {"f": {"a"},
+                       "g": {"b"},
+                       "h": {"c"},
+                       "i": {"d"},
+                       "j": {"e"}}
     expected_keystring = "ABCDEFGHIJKLMNOPQRSTUVWXYZfghijfghijklmnopqrstuvwxyz"
     TEST_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     mapping = attack_substitution.Mapping.new_mapping(mapping_content, charset=TEST_CHARSET)
@@ -234,3 +246,22 @@ def test_get_used_charset():
     expected_charset = set("abcdefg")
     returned_charset = attack_substitution._get_used_charset(text)
     assert returned_charset == expected_charset
+
+
+@pytest.mark.quick_test
+def test_clean_redundancies():
+    mapping_content = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"d", "f"},
+                       "5": {"c", "h"}}
+    mapping_cleaned = {"1": {"a", "b"},
+                       "2": {"c"},
+                       "3": {"d"},
+                       "4": {"f"},
+                       "5": {"h"}}
+    mapping = attack_substitution.Mapping.new_mapping(mapping_content, charset=TEST_CHARSET)
+    expected_mapping = attack_substitution.Mapping.new_mapping(mapping_cleaned, charset=TEST_CHARSET)
+    mapping.clean_redundancies()
+    assert mapping.get_current_content() == expected_mapping.get_current_content()
+

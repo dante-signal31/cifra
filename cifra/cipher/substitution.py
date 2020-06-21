@@ -8,7 +8,7 @@ from common import DEFAULT_CHARSET
 
 class WrongSubstitutionKeyCauses(Enum):
     wrong_key_length = auto()
-    # repeated_characters = auto()
+    repeated_characters = auto()
 
 
 class WrongSubstitutionKey(Exception):
@@ -38,8 +38,8 @@ def check_substitution_key(func):
     def wrapped(text: str, key: str, charset: str):
         if len(key) != len(charset):
             raise WrongSubstitutionKey(key, charset, WrongSubstitutionKeyCauses.wrong_key_length)
-        # elif len(key) != len(set(key)):
-        #     raise WrongSubstitutionKey(key, charset, WrongSubstitutionKeyCauses.repeated_characters)
+        elif len(key) != len(set(key)):
+            raise WrongSubstitutionKey(key, charset, WrongSubstitutionKeyCauses.repeated_characters)
         return func(text, key, charset)
     return wrapped
 

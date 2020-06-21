@@ -250,6 +250,9 @@ def get_words_from_text(text: str) -> Set[str]:
     :return: A set of words normalized to lowercase and without any punctuation mark.
     """
     lowercase_text = text.lower()
+    # Line breaks are troublesome for further assessment so we remove it.
+    lowercase_text = lowercase_text.replace("\n", " ")
+    lowercase_text = lowercase_text.replace("\r", " ")
     words = set(re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text))
     return words
 

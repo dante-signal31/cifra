@@ -5,6 +5,7 @@ import pytest
 import cipher.substitution as substitution
 
 TEST_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+TEST_KEY =     "LFWOAYUISVKMNXPBDCRJTQEGHZlfwoayuisvkmnxpbdcrjtqeghz"
 ORIGINAL_MESSAGE = "If a man is offered a fact which goes against his " \
                    "instincts, he will scrutinize it closely, and unless " \
                    "the evidence is overwhelming, he will refuse to believe " \
@@ -21,7 +22,7 @@ CIPHERED_MESSAGE = "Sy l nlx sr pyyacao l ylwj eiswi upar lulsxrj isr " \
                    "lwjsxu sx lwwpcolxwa jp isr sxrjsxwjr, ia esmm " \
                    "lwwabj sj aqax px jia rmsuijarj aqsoaxwa. Jia pcsusx " \
                    "py nhjir sr agbmlsxao sx jisr elh. -Facjclxo Ctrramm"
-TEST_KEY = "LFWOAYUISVKMNXPBDCRJTQEGHZlfwoayuisvkmnxpbdcrjtqeghz"
+
 
 
 @pytest.mark.quick_test

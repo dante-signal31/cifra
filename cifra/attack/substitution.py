@@ -12,10 +12,11 @@ won't be detected.
 from __future__ import annotations
 import copy
 import functools
+import math
 from typing import Optional, Dict, Set, List
 from cifra.attack.dictionaries import get_words_from_text, get_word_pattern, Dictionary, IdentifiedLanguage, identify_language, get_candidates_frequency_at_language
 from cifra.cipher.common import DEFAULT_CHARSET
-from cifra.cipher.substitution import decipher
+from cifra.cipher.substitution import decipher, WrongSubstitutionKey
 
 
 def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> (str, float):
@@ -38,7 +39,7 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
     """
     ciphered_words = get_words_from_text(ciphered_text)
     available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
-    keys_found = dict() # Keys are charset keys and values valid probabilities.
+    keys_found = dict()  # Keys are charset keys and values valid probabilities.
     global_mapping = dict()
     for language in available_languages:
         with Dictionary.open(language, False, _database_path=_database_path) as dictionary:
@@ -46,10 +47,19 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
             for ciphered_word in ciphered_words:
                 word_mapping = _get_word_mapping(charset, ciphered_word, dictionary)
                 global_mapping[language].reduce_mapping(word_mapping)
-            possible_mappings = global_mapping[language].get_possible_mappings()
-            for possible_mapping in possible_mappings:
-                key = possible_mapping.generate_key_string()
-                keys_found[key] = _assess_substitution_key(ciphered_text, key, language, charset)
+        global_mapping[language].clean_redundancies()
+        possible_mappings = global_mapping[language].get_possible_mappings()
+        index = 0
+        for possible_mapping in possible_mappings:
+            key = possible_mapping.generate_key_string()
+            keys_found[key] = _assess_substitution_key(ciphered_text, key, language,
+                                                       charset, _database_path=_database_path)
+            index += 1
+            print(" : ".join([str(index), key, str(keys_found[key])]))
+        #     if math.isclose(keys_found[key], 1.0, rel_tol=0.01):
+        #         break
+        # if math.isclose(keys_found[key], 1.0, rel_tol=0.01):
+        #     break
     best_probability = 0
     best_key = ""
     for key, value in keys_found.items():
@@ -126,6 +136,9 @@ def _assess_substitution_key(ciphered_text: str, key: str, language: str, charse
     """ Decipher text with given key and try to find out if returned text can be identified with given
     language.
 
+    If given key does not comply with coherence rules then it is silently discarded
+    returning 0.
+
     :param ciphered_text: Text to be deciphered.
     :param key: Key to decipher *ciphered_text*.
     :param language: Language to compare got text.
@@ -137,9 +150,12 @@ def _assess_substitution_key(ciphered_text: str, key: str, language: str, charse
     :return: Float from 0 to 1. The higher the frequency of presence of words in language
         the higher of this probability.
     """
-    recovered_text = decipher(ciphered_text, key, charset)
-    words = get_words_from_text(recovered_text)
-    frequency = get_candidates_frequency_at_language(words, language, _database_path=_database_path)
+    try:
+        recovered_text = decipher(ciphered_text, key, charset)
+        words = get_words_from_text(recovered_text)
+        frequency = get_candidates_frequency_at_language(words, language, _database_path=_database_path)
+    except WrongSubstitutionKey:
+        frequency = 0
     return frequency
 
 
@@ -227,7 +243,23 @@ class Mapping(object):
 
         :return: Generated key string.
         """
-        return "".join(value_set.pop() if value_set != set() else key for key, value_set in self._mapping.items())
+        key_list = []
+        for clear_char in self._charset:
+            char_found = False
+            for key, value_set in self._mapping.items():
+                if value_set == set():
+                    continue
+                # Use this method with already reduced mappings because only
+                # first element of every set will be taken.
+                value = [v for v in value_set][0]
+                if value == clear_char:
+                    char_found = True
+                    key_list.append(key)
+                    break
+            if not char_found:
+                key_list.append(clear_char)
+        return "".join(key_list)
+        # return "".join(value_set.pop() if value_set != set() else key for key, value_set in self._mapping.items())
 
     def popitem(self) -> (str, Set[str]):
         return self._mapping.popitem()
@@ -273,6 +305,21 @@ class Mapping(object):
                 self[cipherletter] &= word_mapping[cipherletter]
             elif not self[cipherletter] and word_mapping[cipherletter]:
                 self[cipherletter] = word_mapping[cipherletter].copy()
+
+    def clean_redundancies(self) -> None:
+        """ Remove redundancies from mapping.
+
+        If any cipherletter has been reduced to just one candidate, then that
+        candidate should not be in any other cipherletter. Leaving it would produce
+        an inconsistent deciphering key with repeated characters.
+        """
+        candidates_to_remove = [[candidate for candidate in candidate_set][0]
+                                for candidate_set in self._mapping.values() if len(candidate_set) == 1]
+        sets_to_check = [candidate_set for candidate_set in self._mapping.values() if len(candidate_set) > 1]
+        for candidate_to_remove in candidates_to_remove:
+            for set_to_check in sets_to_check:
+                if candidate_to_remove in set_to_check:
+                    set_to_check.remove(candidate_to_remove)
 
 
 def _get_word_mapping(charset: str, ciphered_word: str, dictionary: Dictionary) -> Mapping:
