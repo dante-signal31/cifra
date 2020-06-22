@@ -46,18 +46,39 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
                                                               charset, _database_path)
         global_mapping[language].clean_redundancies()
         possible_mappings = global_mapping[language].get_possible_mappings()
-        index = 0
-        for possible_mapping in possible_mappings:
-            key = possible_mapping.generate_key_string()
-            keys_found[key] = _assess_substitution_key(ciphered_text, key, language,
-                                                       charset, _database_path=_database_path)
-            index += 1
+        keys_found.update(_assess_candidate_keys(ciphered_text, language, possible_mappings, charset, _database_path))
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
 
 
+def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings: List[Mapping],
+                           charset: str = DEFAULT_CHARSET,
+                           _database_path: Optional[str] = None) -> Dict[str, float]:
+    """ Assess every possible mapping and get how many recovered words are identifiable
+    in any language dictionary.
+
+    :param ciphered_text: Text to be deciphered.
+    :param language: Language to compare with recovered words.
+    :param possible_mappings: Possible cipherletter mappings for given text.
+    :param charset: Charset used for substitution method. Both ends, ciphering
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :return: A dict whose keys are tested keys and values are a 0 to 1 float with
+        comparison sucess for given language. 1 means every deciphered word using
+        tested key can be found in given language dictionary.
+    """
+    keys_found: Dict[str, float] = dict()
+    for possible_mapping in possible_mappings:
+        key = possible_mapping.generate_key_string()
+        keys_found[key] = _assess_substitution_key(ciphered_text, key, language,
+                                                   charset, _database_path=_database_path)
+    return keys_found
+
+
 def _generate_language_mapping(language: str, ciphered_words: Set[str],
-                                charset: str = DEFAULT_CHARSET,
+                               charset: str = DEFAULT_CHARSET,
                                _database_path: Optional[str] = None) -> Mapping:
     """ Generate a mapping with all letter candidates in given language for every
     cipherletter.
