@@ -11,15 +11,14 @@ won't be detected.
 """
 from __future__ import annotations
 import copy
-import functools
-import math
 from typing import Optional, Dict, Set, List
-from cifra.attack.dictionaries import get_words_from_text, get_word_pattern, Dictionary, IdentifiedLanguage, identify_language, get_candidates_frequency_at_language
+from cifra.attack.dictionaries import get_words_from_text, get_word_pattern, Dictionary, get_candidates_frequency_at_language
 from cifra.cipher.common import DEFAULT_CHARSET
 from cifra.cipher.substitution import decipher, WrongSubstitutionKey
 
 
-def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> (str, float):
+def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
+                      _database_path: Optional[str] = None) -> (str, float):
     """ Get substitution ciphered text key.
 
     Uses a word pattern matching technique to identify used language.
@@ -130,7 +129,7 @@ def _get_used_charset(text: str) -> Set[str]:
 
 
 def _assess_substitution_key(ciphered_text: str, key: str, language: str, charset: str,
-                       _database_path: Optional[str] = None) -> float:
+                             _database_path: Optional[str] = None) -> float:
     """ Decipher text with given key and try to find out if returned text can be identified with given
     language.
 
@@ -257,7 +256,6 @@ class Mapping(object):
             if not char_found:
                 key_list.append(clear_char)
         return "".join(key_list)
-        # return "".join(value_set.pop() if value_set != set() else key for key, value_set in self._mapping.items())
 
     def popitem(self) -> (str, Set[str]):
         return self._mapping.popitem()
