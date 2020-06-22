@@ -55,11 +55,6 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
             keys_found[key] = _assess_substitution_key(ciphered_text, key, language,
                                                        charset, _database_path=_database_path)
             index += 1
-            # print(" : ".join([str(index), key, str(keys_found[key])]))
-        #     if math.isclose(keys_found[key], 1.0, rel_tol=0.01):
-        #         break
-        # if math.isclose(keys_found[key], 1.0, rel_tol=0.01):
-        #     break
     best_probability = 0
     best_key = ""
     for key, value in keys_found.items():
