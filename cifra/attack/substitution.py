@@ -39,14 +39,11 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
     """
     ciphered_words = get_words_from_text(ciphered_text)
     available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
-    keys_found = dict()  # Keys are charset keys and values valid probabilities.
-    global_mapping = dict()
+    keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
+    global_mapping: Dict[str, Mapping] = dict()
     for language in available_languages:
-        with Dictionary.open(language, False, _database_path=_database_path) as dictionary:
-            global_mapping[language] = Mapping(charset)
-            for ciphered_word in ciphered_words:
-                word_mapping = _get_word_mapping(charset, ciphered_word, dictionary)
-                global_mapping[language].reduce_mapping(word_mapping)
+        global_mapping[language] = _generate_language_mapping(language, ciphered_words,
+                                                              charset, _database_path)
         global_mapping[language].clean_redundancies()
         possible_mappings = global_mapping[language].get_possible_mappings()
         index = 0
@@ -57,6 +54,29 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
             index += 1
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
+
+
+def _generate_language_mapping(language: str, ciphered_words: Set[str],
+                                charset: str = DEFAULT_CHARSET,
+                               _database_path: Optional[str] = None) -> Mapping:
+    """ Generate a mapping with all letter candidates in given language for every
+    cipherletter.
+
+    :param language: Language to look letter candidates into.
+    :param ciphered_words: Every cipherword in message.
+    :param charset: Charset used for substitution. Both ends, ciphering
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :return:
+    """
+    language_mapping = Mapping(charset)
+    with Dictionary.open(language, False, _database_path=_database_path) as dictionary:
+        for ciphered_word in ciphered_words:
+            word_mapping = _get_word_mapping(charset, ciphered_word, dictionary)
+            language_mapping.reduce_mapping(word_mapping)
+    return language_mapping
 
 
 def _get_best_key(keys_found: Dict[str, float]) -> (str, float):
