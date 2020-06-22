@@ -55,6 +55,16 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET, _datab
             keys_found[key] = _assess_substitution_key(ciphered_text, key, language,
                                                        charset, _database_path=_database_path)
             index += 1
+    best_key, best_probability = _get_best_key(keys_found)
+    return best_key, best_probability
+
+
+def _get_best_key(keys_found: Dict[str, float]) -> (str, float):
+    """ Get key with maximum probability.
+
+    :param keys_found: Dict with cipher keys as dict keys and their corresponding probabilities as float values.
+    :return: Tuple with best key and its corresponding probability.
+    """
     best_probability = 0
     best_key = ""
     for key, value in keys_found.items():
