@@ -318,7 +318,7 @@ def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = N
     for language in Dictionary.get_dictionaries_names(_database_path):
         # with Dictionary.open(language, _database_path=_database_path) as dictionary:
         #     candidates[language] = dictionary.get_words_presence(words)
-        candidates[language] = get_candidates_frequency_at_language(words, language)
+        candidates[language] = get_candidates_frequency_at_language(words, language, _database_path=_database_path)
     return candidates
 
 

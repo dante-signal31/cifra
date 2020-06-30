@@ -287,7 +287,8 @@ def test_add_multiple_words(temp_dir):
 @pytest.mark.parametrize("text,language",
                          [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
                           (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
-                         ids=["english", "spanish"])
+                         ids=["english",
+                              "spanish"])
 def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
     identified_language = identify_language(text, loaded_dictionaries.temp_dir)
     assert identified_language.winner == language
