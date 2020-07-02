@@ -49,6 +49,7 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
 
+# TODO: Implement hack_substitution_mp().
 
 def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings: List[Mapping],
                            charset: str = DEFAULT_CHARSET,
