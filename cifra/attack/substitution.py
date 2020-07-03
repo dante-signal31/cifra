@@ -12,7 +12,7 @@ won't be detected.
 from __future__ import annotations
 import copy
 import multiprocessing
-from typing import Optional, Dict, Set, List
+from typing import Optional, Dict, Set, List, Tuple
 from cifra.attack.dictionaries import get_words_from_text, get_word_pattern, Dictionary, get_candidates_frequency_at_language
 from cifra.attack.simple_attacks import _get_usable_cpus
 from cifra.cipher.common import DEFAULT_CHARSET
@@ -42,22 +42,33 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
     keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
     for language in available_languages:
-        possible_mappings = _get_possible_mappings(language, ciphered_words, charset, _database_path)
+        possible_mappings, _ = _get_possible_mappings(language, ciphered_words, charset, _database_path)
         language_keys = _assess_candidate_keys(ciphered_text, language, possible_mappings, charset, _database_path)
         keys_found.update(language_keys)
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
 
 
-def _get_possible_mappings(language, ciphered_words, charset, _database_path):
+def _get_possible_mappings(language: str, ciphered_words: Set[str],
+                           charset: str = DEFAULT_CHARSET,
+                           _database_path: Optional[str] = None) -> Tuple[List[Mapping], str]:
+    """ Get every possible mapping for given ciphered words in given language.
+
+    :param language: Language to compare with ciphered words.
+    :param ciphered_words: Words whose patterns needs to be compared with those from language dictionary.
+    :param charset: Charset used for substitution method. Both ends, ciphering
+     and deciphering, should use the same charset or original text won't be properly
+     recovered.
+    :param _database_path:
+    :return:
+    """
     global_mapping = _generate_language_mapping(language, ciphered_words,
                                                           charset, _database_path)
     global_mapping.clean_redundancies()
     possible_mappings = global_mapping.get_possible_mappings()
-    return possible_mappings
+    return (possible_mappings, language)
 
 
-# TODO: Implement hack_substitution_mp().
 def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
                       _database_path: Optional[str] = None) -> (str, float):
     """ Get substitution ciphered text key.
@@ -77,13 +88,23 @@ def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
      set this parameter, but it is useful for tests.
     :return: A tuple with substitution key found and success probability.
     """
-    # ciphered_words = get_words_from_text(ciphered_text)
-    # available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
-    # keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
-    # global_mapping: Dict[str, Mapping] = dict()
-    # with multiprocessing.Pool(_get_usable_cpus()) as pool:
-    #     results = pool.map(assess_function, nargs)
-    raise NotImplementedError
+    ciphered_words = get_words_from_text(ciphered_text)
+    available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
+    keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
+    with multiprocessing.Pool(_get_usable_cpus()) as pool:
+        nargs = ((language, ciphered_words, charset, _database_path) for language in available_languages)
+        possible_mappings: List[Tuple[List[Mapping], str]] = pool.starmap(_get_possible_mappings, nargs)
+        # I've could have passed the entire mappings list to _assess_candidates_keys() but
+        # in my tests I've discovered to be more perfomant to extract every element from
+        # mappings list and passing them as one element lists.
+        nargs = ((ciphered_text, language, [mapping], charset, _database_path)
+                 for mappings, language in possible_mappings for mapping in mappings)
+        language_keys_list: List[Dict[str, float]] = pool.starmap(_assess_candidate_keys, nargs)
+        for language_keys in language_keys_list:
+            keys_found.update(language_keys)
+    best_key, best_probability = _get_best_key(keys_found)
+    return best_key, best_probability
+
 
 
 def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings: List[Mapping],
@@ -111,7 +132,23 @@ def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings:
     return keys_found
 
 
-def _assess_possible_mapping(possible_mapping, language, ciphered_text, charset, _database_path) -> (str, float):
+def _assess_possible_mapping(possible_mapping: Mapping, language: str, ciphered_text: str, charset: str = DEFAULT_CHARSET,
+                             _database_path: Optional[str] = None) -> (str, float):
+    """ Convert mapping to a substitution key and check if that key deciphers messages in words
+    from any know dictionary.
+
+    :param possible_mapping: Mapping reduced to maximum.
+    :param language: Language to compare with recovered words.
+    :param ciphered_text: Text to be deciphered.
+    :param charset: Charset used for substitution method. Both ends, ciphering
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :return: A tuple with key generated from given mapping and a 0 to 1 float with
+        comparison sucess for given language. 1 means every deciphered word using
+        tested key can be found in given language dictionary.
+    """
     key = possible_mapping.generate_key_string()
     return key, _assess_substitution_key(ciphered_text, key, language,
                                                charset, _database_path=_database_path)
