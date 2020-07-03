@@ -39,6 +39,25 @@ def test_hack_substitution(loaded_dictionaries: LoadedDictionaries, text_file: s
     print(f"\n\nElapsed time with test_hack_substitution: {elapsed_time[0]} seconds.")
 
 
+@pytest.mark.slow_test
+@pytest.mark.parametrize("text_file,language, key, charset",
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english", TEST_KEY, TEST_CHARSET),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish", TEST_KEY_SPANISH, TEST_CHARSET_SPANISH)],
+                         ids=["english", "spanish"])
+def test_hack_substitution_mp(loaded_dictionaries: LoadedDictionaries, text_file: str, language: str, key: str, charset: str):
+    elapsed_time = []
+    with timeit(elapsed_time):
+        text_file_pathname = os.path.join(os.getcwd(), "cifra", "tests", text_file)
+        with open(text_file_pathname) as text_file:
+            clear_text = text_file.read()
+            ciphered_text = substitution.cipher(clear_text, key, charset)
+        found_key = attack_substitution.hack_substitution_mp(ciphered_text,
+                                                          charset,
+                                                          _database_path=loaded_dictionaries.temp_dir)
+        assert key == found_key[0]
+    print(f"\n\nElapsed time with test_hack_substitution: {elapsed_time[0]} seconds.")
+
+
 @pytest.mark.quick_test
 def test_init_mapping():
     expected_mapping = {'a': set(), 'b': set(), 'c': set(), 'd': set(), 'e': set(), 'f': set(), 'g': set(),
