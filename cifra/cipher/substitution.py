@@ -76,8 +76,6 @@ def cipher(text: str, key: str, charset: str = DEFAULT_CHARSET) -> str:
             ciphered_char = char
         ciphered_chars.append(ciphered_char)
     return "".join(ciphered_chars)
-    # return "".join(map(lambda char: key[charset.index(char)] if char in charset else char,
-    #                    (char for char in text)))
 
 
 @check_substitution_key
@@ -104,8 +102,7 @@ def decipher(ciphered_text: str, key: str, charset: str = DEFAULT_CHARSET) -> st
             char = ciphered_char
         deciphered_chars.append(char)
     return "".join(deciphered_chars)
-    # return "".join(map(lambda char: charset[key.index(char)] if char in key else char,
-    #                    (char for char in ciphered_text)))
+
 
 
 
