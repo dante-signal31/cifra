@@ -11,8 +11,10 @@ won't be detected.
 """
 from __future__ import annotations
 import copy
+import multiprocessing
 from typing import Optional, Dict, Set, List
 from cifra.attack.dictionaries import get_words_from_text, get_word_pattern, Dictionary, get_candidates_frequency_at_language
+from cifra.attack.simple_attacks import _get_usable_cpus
 from cifra.cipher.common import DEFAULT_CHARSET
 from cifra.cipher.substitution import decipher, WrongSubstitutionKey
 
@@ -39,17 +41,50 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     ciphered_words = get_words_from_text(ciphered_text)
     available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
     keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
-    global_mapping: Dict[str, Mapping] = dict()
     for language in available_languages:
-        global_mapping[language] = _generate_language_mapping(language, ciphered_words,
-                                                              charset, _database_path)
-        global_mapping[language].clean_redundancies()
-        possible_mappings = global_mapping[language].get_possible_mappings()
-        keys_found.update(_assess_candidate_keys(ciphered_text, language, possible_mappings, charset, _database_path))
+        possible_mappings = _get_possible_mappings(language, ciphered_words, charset, _database_path)
+        language_keys = _assess_candidate_keys(ciphered_text, language, possible_mappings, charset, _database_path)
+        keys_found.update(language_keys)
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
 
+
+def _get_possible_mappings(language, ciphered_words, charset, _database_path):
+    global_mapping = _generate_language_mapping(language, ciphered_words,
+                                                          charset, _database_path)
+    global_mapping.clean_redundancies()
+    possible_mappings = global_mapping.get_possible_mappings()
+    return possible_mappings
+
+
 # TODO: Implement hack_substitution_mp().
+def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
+                      _database_path: Optional[str] = None) -> (str, float):
+    """ Get substitution ciphered text key.
+
+    Uses a word pattern matching technique to identify used language.
+
+    **You should use this function instead of *hack_substitution*.**
+
+    Whereas *hack_substitution* uses a sequential approach, this function uses
+    multiprocessing to improve performance.
+
+    :param ciphered_text: Text to be deciphered.
+    :param charset: Charset used for substitution method. Both ends, ciphering
+     and deciphering, should use the same charset or original text won't be properly
+     recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+     set this parameter, but it is useful for tests.
+    :return: A tuple with substitution key found and success probability.
+    """
+    # ciphered_words = get_words_from_text(ciphered_text)
+    # available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
+    # keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
+    # global_mapping: Dict[str, Mapping] = dict()
+    # with multiprocessing.Pool(_get_usable_cpus()) as pool:
+    #     results = pool.map(assess_function, nargs)
+    raise NotImplementedError
+
 
 def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings: List[Mapping],
                            charset: str = DEFAULT_CHARSET,
@@ -71,10 +106,15 @@ def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings:
     """
     keys_found: Dict[str, float] = dict()
     for possible_mapping in possible_mappings:
-        key = possible_mapping.generate_key_string()
-        keys_found[key] = _assess_substitution_key(ciphered_text, key, language,
-                                                   charset, _database_path=_database_path)
+        (key, probability) = _assess_possible_mapping(possible_mapping, language, ciphered_text, charset, _database_path)
+        keys_found[key] = probability
     return keys_found
+
+
+def _assess_possible_mapping(possible_mapping, language, ciphered_text, charset, _database_path) -> (str, float):
+    key = possible_mapping.generate_key_string()
+    return key, _assess_substitution_key(ciphered_text, key, language,
+                                               charset, _database_path=_database_path)
 
 
 def _generate_language_mapping(language: str, ciphered_words: Set[str],
