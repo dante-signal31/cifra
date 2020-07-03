@@ -94,7 +94,7 @@ def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     with multiprocessing.Pool(_get_usable_cpus()) as pool:
         nargs = ((language, ciphered_words, charset, _database_path) for language in available_languages)
         possible_mappings: List[Tuple[List[Mapping], str]] = pool.starmap(_get_possible_mappings, nargs)
-        # I've could have passed the entire mappings list to _assess_candidates_keys() but
+        # I could have passed the entire mappings list to _assess_candidates_keys() but
         # in my tests I've discovered to be more perfomant to extract every element from
         # mappings list and passing them as one element lists.
         nargs = ((ciphered_text, language, [mapping], charset, _database_path)
