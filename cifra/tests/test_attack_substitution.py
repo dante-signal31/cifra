@@ -4,6 +4,8 @@ Tests for cipher.substitution module.
 import os
 import pytest
 
+from test_common.benchmark.timing import timeit
+
 import cifra.attack.substitution as attack_substitution
 import cifra.cipher.substitution as substitution
 from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionaries
@@ -24,14 +26,17 @@ SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS = "resources/spanish_book_c1.txt"
                           (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish", TEST_KEY_SPANISH, TEST_CHARSET_SPANISH)],
                          ids=["english", "spanish"])
 def test_hack_substitution(loaded_dictionaries: LoadedDictionaries, text_file: str, language: str, key: str, charset: str):
-    text_file_pathname = os.path.join(os.getcwd(), "cifra", "tests", text_file)
-    with open(text_file_pathname) as text_file:
-        clear_text = text_file.read()
-        ciphered_text = substitution.cipher(clear_text, key, charset)
-    found_key = attack_substitution.hack_substitution(ciphered_text,
-                                                      charset,
-                                                      _database_path=loaded_dictionaries.temp_dir)
-    assert key == found_key[0]
+    elapsed_time = []
+    with timeit(elapsed_time):
+        text_file_pathname = os.path.join(os.getcwd(), "cifra", "tests", text_file)
+        with open(text_file_pathname) as text_file:
+            clear_text = text_file.read()
+            ciphered_text = substitution.cipher(clear_text, key, charset)
+        found_key = attack_substitution.hack_substitution(ciphered_text,
+                                                          charset,
+                                                          _database_path=loaded_dictionaries.temp_dir)
+        assert key == found_key[0]
+    print(f"\n\nElapsed time with test_hack_substitution: {elapsed_time[0]} seconds.")
 
 
 @pytest.mark.quick_test
