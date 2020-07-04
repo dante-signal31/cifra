@@ -49,30 +49,8 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     return best_key, best_probability
 
 
-def _get_possible_mappings(language: str, ciphered_words: Set[str],
-                           charset: str = DEFAULT_CHARSET,
-                           _database_path: Optional[str] = None) -> Tuple[List[Mapping], str]:
-    """ Get every possible mapping for given ciphered words in given language.
-
-    :param language: Language to compare with ciphered words.
-    :param ciphered_words: Words whose patterns needs to be compared with those from language dictionary.
-    :param charset: Charset used for substitution method. Both ends, ciphering
-        and deciphering, should use the same charset or original text won't be properly
-        recovered.
-    :param _database_path: Absolute pathname to database file. Usually you don't
-        set this parameter, but it is useful for tests.
-    :return: Tuple with a list of possible mapping found and a string with language name where those
-        mappings where found.
-    """
-    global_mapping = _generate_language_mapping(language, ciphered_words,
-                                                          charset, _database_path)
-    global_mapping.clean_redundancies()
-    possible_mappings = global_mapping.get_possible_mappings()
-    return (possible_mappings, language)
-
-
 def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
-                      _database_path: Optional[str] = None) -> (str, float):
+                         _database_path: Optional[str] = None) -> (str, float):
     """ Get substitution ciphered text key.
 
     Uses a word pattern matching technique to identify used language.
@@ -107,6 +85,27 @@ def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
 
+
+def _get_possible_mappings(language: str, ciphered_words: Set[str],
+                           charset: str = DEFAULT_CHARSET,
+                           _database_path: Optional[str] = None) -> Tuple[List[Mapping], str]:
+    """ Get every possible mapping for given ciphered words in given language.
+
+    :param language: Language to compare with ciphered words.
+    :param ciphered_words: Words whose patterns needs to be compared with those from language dictionary.
+    :param charset: Charset used for substitution method. Both ends, ciphering
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :return: Tuple with a list of possible mapping found and a string with language name where those
+        mappings where found.
+    """
+    global_mapping = _generate_language_mapping(language, ciphered_words,
+                                                          charset, _database_path)
+    global_mapping.clean_redundancies()
+    possible_mappings = global_mapping.get_possible_mappings()
+    return possible_mappings, language
 
 
 def _assess_candidate_keys(ciphered_text: str, language: str, possible_mappings: List[Mapping],
