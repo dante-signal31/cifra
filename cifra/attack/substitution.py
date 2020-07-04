@@ -57,10 +57,12 @@ def _get_possible_mappings(language: str, ciphered_words: Set[str],
     :param language: Language to compare with ciphered words.
     :param ciphered_words: Words whose patterns needs to be compared with those from language dictionary.
     :param charset: Charset used for substitution method. Both ends, ciphering
-     and deciphering, should use the same charset or original text won't be properly
-     recovered.
-    :param _database_path:
-    :return:
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :return: Tuple with a list of possible mapping found and a string with language name where those
+        mappings where found.
     """
     global_mapping = _generate_language_mapping(language, ciphered_words,
                                                           charset, _database_path)
