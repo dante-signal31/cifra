@@ -243,7 +243,7 @@ class Mapping(object):
     """
 
     def __init__(self, charset: str = DEFAULT_CHARSET):
-        """ Create empty mapping for cipher letters
+        """ Create empty mapping for cipher letters.
 
         :param charset: Charset used for substitution method. Both ends, ciphering
             and deciphering, should use the same charset or original text won't be properly
@@ -337,6 +337,10 @@ class Mapping(object):
         return "".join(key_list)
 
     def popitem(self) -> (str, Set[str]):
+        """ Remove and return a cipherletter and its candidates from current mapping.
+
+        :return: A tuple with selected cipherletter and its candidates.
+        """
         return self._mapping.popitem()
 
     def get_possible_mappings(self, mapping: Mapping = None) -> List[Mapping]:
