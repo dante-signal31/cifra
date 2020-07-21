@@ -168,7 +168,7 @@ def _generate_language_mapping(language: str, ciphered_words: Set[str],
         recovered.
     :param _database_path: Absolute pathname to database file. Usually you don't
         set this parameter, but it is useful for tests.
-    :return:
+    :return: Mapping loaded with all candidates in given language.
     """
     language_mapping = Mapping(charset)
     with Dictionary.open(language, False, _database_path=_database_path) as dictionary:
