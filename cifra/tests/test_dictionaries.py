@@ -271,7 +271,7 @@ def test_get_word_pattern():
     word = "HGHHU"
     expected_word_pattern = "0.1.0.0.2"
     word_pattern = get_word_pattern(word)
-    assert expected_word_pattern == word_pattern
+    assert  word_pattern == expected_word_pattern
 
 
 @pytest.mark.quick_test

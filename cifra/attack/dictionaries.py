@@ -265,9 +265,11 @@ def get_word_pattern(word: str) -> str:
     :param word: Word to get pattern for.
     :return: Word pattern.
     """
-    char_order = collections.OrderedDict()
+    # There is no ordered set type in Python, but we can get that behaviour using
+    # dict keys because since python 3.7 dict keys are guaranteed to be ordered.
+    char_order = {}
     for char in word:
-        char_order.setdefault(char, None)
+        char_order[char] = None
     chars_indexed = list(char_order.keys())
     pattern = list(map(lambda char: chars_indexed.index(char), (char for char in word)))
     return ".".join(map(str, pattern))

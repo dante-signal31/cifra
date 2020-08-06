@@ -44,6 +44,14 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     for language in available_languages:
         possible_mappings, _ = _get_possible_mappings(language, ciphered_words, charset, _database_path)
         language_keys = _assess_candidate_keys(ciphered_text, language, possible_mappings, charset, _database_path)
+        # It would be extremely odd, but two languages may generate the same key.
+        # So we must keep the one with higher probability.
+        for key in keys_found:
+            if key in language_keys:
+                if language_keys[key] < keys_found[key]:
+                    language_keys.pop(key)
+        # Now, languages_keys should have keys not yet present at keys_found or
+        # with smaller probability.
         keys_found.update(language_keys)
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
@@ -81,6 +89,14 @@ def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
                  for mappings, language in possible_mappings for mapping in mappings)
         language_keys_list: List[Dict[str, float]] = pool.starmap(_assess_candidate_keys, nargs)
         for language_keys in language_keys_list:
+            # It would be extremely odd, but two languages may generate the same key.
+            # So we must keep the one with higher probability.
+            for key in keys_found:
+                if key in language_keys:
+                    if language_keys[key] < keys_found[key]:
+                        language_keys.pop(key)
+            # Now, languages_keys should have keys not yet present at keys_found or
+            # with smaller probability.
             keys_found.update(language_keys)
     best_key, best_probability = _get_best_key(keys_found)
     return best_key, best_probability
@@ -147,7 +163,7 @@ def _assess_possible_mapping(possible_mapping: Mapping, language: str, ciphered_
     :param _database_path: Absolute pathname to database file. Usually you don't
         set this parameter, but it is useful for tests.
     :return: A tuple with key generated from given mapping and a 0 to 1 float with
-        comparison sucess for given language. 1 means every deciphered word using
+        comparison success for given language. 1 means every deciphered word using
         tested key can be found in given language dictionary.
     """
     key = possible_mapping.generate_key_string()
