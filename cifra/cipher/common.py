@@ -10,6 +10,7 @@ class Ciphers(Enum):
     CAESAR = auto()
     TRANSPOSITION = auto()
     AFFINE = auto()
+    VIGENERE = auto()
 
 
 def _offset_text(text: str, key: int, advance: bool, cipher_used: Ciphers, charset: str = DEFAULT_CHARSET) -> str:
@@ -60,7 +61,7 @@ def _get_offset_position(current_position: int, key: int, advance: bool, cipher_
     :param charset_length: Length of charset to use for substitution.
     :return: New offset position for this char.
     """
-    if cipher_used is Ciphers.CAESAR:
+    if cipher_used is Ciphers.CAESAR or cipher_used is Ciphers.VIGENERE:
         return current_position + key if advance else current_position - key
     if cipher_used is Ciphers.AFFINE:
         multiplying_key, adding_key = get_affine_key_parts(key, charset_length)
