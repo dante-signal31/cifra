@@ -1,12 +1,19 @@
 """ Module to keep common functions used by caesar and transposition attacks. """
 import multiprocessing
 import os
-from typing import Callable
+from typing import Callable, Iterator, Union
 
 from cifra.attack.dictionaries import IdentifiedLanguage, identify_language, get_best_result
 
 
-def _brute_force(assess_function: Callable, **assess_function_args) -> int:
+def _integer_key_generator(maximum_key: int) -> Iterator[int]:
+    for i in range(1, maximum_key):
+        yield i
+
+
+def _brute_force(key_generator: Union[Iterator[int], Iterator[str]],
+                 assess_function: Callable,
+                 **assess_function_args) -> int:
     """ Get ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -17,20 +24,26 @@ def _brute_force(assess_function: Callable, **assess_function_args) -> int:
     multiprocessing approach. This function only stay here to allow comparisons
     between sequential and multiprocessing approaches.
 
+    :param key_generator: Generator to produce keys. To attack a Caesar Cipher
+        you will use an _integer_key_generator() while when you attack a Vigenere
+        you will use _word_key_generator().
     :param assess_function: Analysis function to be used.
     :param assess_function_args: Arguments to be used with given *assess_function*.
     :return: key found.
     """
-    key_space_length = assess_function_args.pop("key_space_length")
+    # key_space_length = assess_function_args.pop("key_space_length")
     results = []
-    for key in range(1, key_space_length):
+    # for key in range(1, key_space_length):
+    for key in key_generator:
         assess_function_args["key"] = key
         results.append(assess_function(**assess_function_args))
     best_key = get_best_result(results)
     return best_key
 
 
-def _brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
+def _brute_force_mp(key_generator: Union[Iterator[int], Iterator[str]],
+                    assess_function: Callable,
+                    **assess_function_args) -> int:
     """ Get ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -41,11 +54,14 @@ def _brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
     Whereas *brute_force* uses a sequential approach, this function uses
     multiprocessing to improve performance.
 
+    :param key_generator: Generator to produce keys. To attack a Caesar Cipher
+        you will use an _integer_key_generator() while when you attack a Vigenere
+        you will use _word_key_generator().
     :param assess_function: Analysis function to be used.
     :param assess_function_args: Arguments to be used with given *assess_function*.
     :return: Transposition key found.
     """
-    key_space_length = assess_function_args.pop("key_space_length")
+    # key_space_length = assess_function_args.pop("key_space_length")
     results = []
     with multiprocessing.Pool(_get_usable_cpus()) as pool:
         nargs = ((assess_function_args["ciphered_text"],
@@ -56,7 +72,7 @@ def _brute_force_mp(assess_function: Callable, **assess_function_args) -> int:
                  (assess_function_args["ciphered_text"],
                   key,
                   assess_function_args["_database_path"])
-                 for key in range(1, key_space_length))
+                 for key in key_generator)
         results = pool.map(assess_function, nargs)
     best_key = get_best_result(results)
     return best_key

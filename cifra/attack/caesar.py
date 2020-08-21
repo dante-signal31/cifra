@@ -13,6 +13,7 @@ from typing import Optional
 
 from cifra.attack.dictionaries import IdentifiedLanguage
 from cifra.attack.simple_attacks import _assess_key
+from cifra.attack.simple_attacks import _integer_key_generator as integer_key_generator
 from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 from cifra.cipher.caesar import decipher
@@ -39,8 +40,9 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
     :return: Caesar key found.
     """
     key_space_length = len(charset)
-    return simple_brute_force(_assess_caesar_key,
-                              key_space_length=key_space_length,
+    return simple_brute_force(key_generator=integer_key_generator(key_space_length),
+                              assess_function=_assess_caesar_key,
+                              # key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
                               charset=charset,
                               _database_path=_database_path)
@@ -67,8 +69,9 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     :return: Caesar key found.
     """
     key_space_length = len(charset)
-    return simple_brute_force_mp(_analize_text,
-                                 key_space_length=key_space_length,
+    return simple_brute_force_mp(key_generator=integer_key_generator(key_space_length),
+                                 assess_function=_analize_text,
+                                 # key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  charset=charset,
                                  _database_path=_database_path)
