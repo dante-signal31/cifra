@@ -262,7 +262,7 @@ def test_get_words_from_text(text_with_punctuation_marks: str, text_without_punc
 
 @pytest.mark.slow_test
 def test_get_dictionaries_names(loaded_dictionaries: LoadedDictionaries):
-    dictionaries_names = Dictionary.get_dictionaries_names(_database_path=loaded_dictionaries.temp_dir)
+    dictionaries_names = Dictionary.get_available_languages(_database_path=loaded_dictionaries.temp_dir)
     assert dictionaries_names == loaded_dictionaries.languages
 
 

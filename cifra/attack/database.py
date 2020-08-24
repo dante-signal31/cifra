@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import sessionmaker
 
 if os.getenv("CIFRA_DEBUG", 0) == "1":
-    # TODO: Check Travia CI sets it corresponding CIFRA_DEBUG env var to 1.
+    # TODO: Check Travis CI sets it corresponding CIFRA_DEBUG env var to 1.
     DATABASE_FILENAME = "cifra_database.sqlite"
 else:
     DATABASE_FILENAME = "~/.cifra/cifra_database.sqlite"

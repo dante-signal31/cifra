@@ -39,7 +39,7 @@ def hack_substitution(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     :return: A tuple with substitution key found and success probability.
     """
     ciphered_words = get_words_from_text(ciphered_text)
-    available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
+    available_languages = Dictionary.get_available_languages(_database_path=_database_path)
     keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
     for language in available_languages:
         possible_mappings, _ = _get_possible_mappings(language, ciphered_words, charset, _database_path)
@@ -77,7 +77,7 @@ def hack_substitution_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     :return: A tuple with substitution key found and success probability.
     """
     ciphered_words = get_words_from_text(ciphered_text)
-    available_languages = Dictionary.get_dictionaries_names(_database_path=_database_path)
+    available_languages = Dictionary.get_available_languages(_database_path=_database_path)
     keys_found: Dict[str, float] = dict()  # Keys are charset keys and values valid probabilities.
     with multiprocessing.Pool(_get_usable_cpus()) as pool:
         nargs = ((language, ciphered_words, charset, _database_path) for language in available_languages)
