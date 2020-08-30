@@ -10,7 +10,7 @@ from typing import List
 from test_common.fs.ops import copy_files
 from test_common.fs.temp import temp_dir
 
-from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
+from cifra.attack.dictionaries import Dictionary, InMemoryDictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
     IdentifiedLanguage, get_word_pattern
 
@@ -166,6 +166,13 @@ def test_open_not_existing_dictionary(temp_dir):
 
 
 @pytest.mark.quick_test
+def test_open_not_existing_dictionary_in_memory(temp_dir):
+    with pytest.raises(NotExistingLanguage):
+        with InMemoryDictionary.open("english", _database_path=temp_dir) as _:
+            pass
+
+
+@pytest.mark.quick_test
 def test_open_existing_dictionary(temp_dir):
     # Create not existing language.
     with Dictionary.open("english", create=True, _database_path=temp_dir) as _:
@@ -176,10 +183,32 @@ def test_open_existing_dictionary(temp_dir):
 
 
 @pytest.mark.quick_test
+def test_open_existing_dictionary_in_memory(temp_dir):
+    # Create not existing language.
+    with InMemoryDictionary.open("english", create=True, _database_path=temp_dir) as _:
+        pass
+    # Open newly created language
+    with InMemoryDictionary.open("english", _database_path=temp_dir) as english_dictionary:
+        assert english_dictionary._already_created()
+
+
+@pytest.mark.quick_test
 def test_cwd_word(temp_dir):
     """Test if we can check for word existence, write a new word and finally delete it."""
     word = "test"
     with Dictionary.open("english", create=True, _database_path=temp_dir) as english_dictionary:
+        assert not english_dictionary.word_exists(word)
+        english_dictionary.add_word(word)
+        assert english_dictionary.word_exists(word)
+        english_dictionary.remove_word(word)
+        assert not english_dictionary.word_exists(word)
+
+
+@pytest.mark.quick_test
+def test_cwd_word_in_memory(temp_dir):
+    """Test if we can check for word existence, write a new word and finally delete it."""
+    word = "test"
+    with InMemoryDictionary.open("english", create=True, _database_path=temp_dir) as english_dictionary:
         assert not english_dictionary.word_exists(word)
         english_dictionary.add_word(word)
         assert english_dictionary.word_exists(word)
@@ -198,6 +227,17 @@ def test_store_word_pattern(temp_dir):
         words = test_dictionary.get_words_with_pattern("0.1.2.3.3.4.5.4.0.2.6.4.7.8")
         assert word in words
 
+
+@pytest.mark.quick_test
+def test_store_word_pattern_in_memory(temp_dir):
+    """Test word pattern is properly stored at database."""
+    word = "classification"
+    with InMemoryDictionary.open("test", create=True, _database_path=temp_dir) as test_dictionary:
+        assert not test_dictionary.word_exists(word)
+        test_dictionary.add_word(word)
+        assert test_dictionary.word_exists(word)
+        words = test_dictionary.get_words_with_pattern("0.1.2.3.3.4.5.4.0.2.6.4.7.8")
+        assert word in words
 
 
 @pytest.mark.quick_test
@@ -266,6 +306,12 @@ def test_get_dictionaries_names(loaded_dictionaries: LoadedDictionaries):
     assert dictionaries_names == loaded_dictionaries.languages
 
 
+@pytest.mark.slow_test
+def test_get_dictionaries_names_in_memory(loaded_dictionaries: LoadedDictionaries):
+    dictionaries_names = InMemoryDictionary.get_available_languages(_database_path=loaded_dictionaries.temp_dir)
+    assert dictionaries_names == loaded_dictionaries.languages
+
+
 @pytest.mark.quick_test
 def test_get_word_pattern():
     word = "HGHHU"
@@ -283,6 +329,15 @@ def test_add_multiple_words(temp_dir):
         assert all(dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])
 
 
+@pytest.mark.quick_test
+def test_add_multiple_words_in_memory(temp_dir):
+    language = "english"
+    with InMemoryDictionary.open(language, create=True, _database_path=temp_dir) as dictionary:
+        assert all(not dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])
+        dictionary.add_multiple_words(MICRO_DICTIONARIES[language])
+        assert all(dictionary.word_exists(word) for word in MICRO_DICTIONARIES[language])
+
+
 @pytest.mark.slow_test
 @pytest.mark.parametrize("text,language",
                          [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
@@ -290,6 +345,18 @@ def test_add_multiple_words(temp_dir):
                          ids=["english",
                               "spanish"])
 def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
-    identified_language = identify_language(text, loaded_dictionaries.temp_dir)
+    identified_language = identify_language(text, False, loaded_dictionaries.temp_dir)
+    assert identified_language.winner == language
+    assert identified_language.winner_probability == 1.0
+
+
+@pytest.mark.slow_test
+@pytest.mark.parametrize("text,language",
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
+                         ids=["english",
+                              "spanish"])
+def test_identify_language_in_memory(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
+    identified_language = identify_language(text, True, loaded_dictionaries.temp_dir)
     assert identified_language.winner == language
     assert identified_language.winner_probability == 1.0

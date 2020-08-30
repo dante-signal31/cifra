@@ -83,6 +83,7 @@ def _analize_text(nargs):
 
 
 def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
+                       in_memory=False,
                        _database_path: Optional[str] = None) -> (int, IdentifiedLanguage):
     """Decipher text with given key and try to find out if returned text can be identified with any
     language in our dictionaries.
@@ -96,5 +97,5 @@ def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
      set this parameter, but it is useful for tests.
     :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
     """
-    return _assess_key(decipher, ciphered_text=ciphered_text, key=key, charset=charset, _database_path=_database_path)
-
+    return _assess_key(decipher, ciphered_text=ciphered_text, key=key, charset=charset, in_memory=in_memory,
+                       _database_path=_database_path)

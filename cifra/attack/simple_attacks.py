@@ -105,8 +105,25 @@ def _assess_key(decipher_function: Callable, **decipher_functions_args) -> (int,
     :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
     """
     database_path = decipher_functions_args.pop("_database_path")
+    in_memory = decipher_functions_args.pop("in_memory")
     deciphered_text = decipher_function(**decipher_functions_args)
     identified_language = identify_language(deciphered_text,
+                                            in_memory=in_memory,
+                                            _database_path=database_path)
+    return decipher_functions_args["key"], identified_language
+
+
+def _assess_key_in_memory(decipher_function: Callable, **decipher_functions_args) -> (int, IdentifiedLanguage):
+    """Decipher text with given key and try to find out if returned text can be identified with any
+    language in our dictionaries.
+
+    :param decipher_function: Function to decipher given text.
+    :param decipher_functions_args: Key to decipher *ciphered_text*.
+    :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
+    """
+    database_path = decipher_functions_args.pop("_database_path")
+    deciphered_text = decipher_function(**decipher_functions_args)
+    identified_language = identify_language_in_memory(deciphered_text,
                                             _database_path=database_path)
     return decipher_functions_args["key"], identified_language
 
