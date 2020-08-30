@@ -3,7 +3,7 @@ Tests for cipher.transposition module.
 """
 import pytest
 
-import transposition
+import cifra.cipher.transposition as transposition
 
 ORIGINAL_MESSAGE = "Common sense is not so common."
 CIPHERED_MESSAGE_KEY_8 = "Cenoonommstmme oo snnio. s s c"

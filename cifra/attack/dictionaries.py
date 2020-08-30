@@ -14,7 +14,7 @@ import dataclasses
 import re
 from typing import Optional, Set, List, Dict, Tuple
 
-import database
+import cifra.attack.database as database
 
 
 class Dictionary(object):
@@ -163,11 +163,13 @@ class Dictionary(object):
         """
         if not _testing:
             # Normal execution flow will get here.
-            # language = self._connection.query(database.Language)\
-            #     .filter(database.Language.language == self.language)\
-            #     .first()
-            # return any(word == word_entry.word for word_entry in language.words)
-            return any(word == word_entry.word for word_entry in self._language_mapper.words)
+            word_to_search = database.Word(word=word,
+                                           # Implemented comparison for Word just looks word and language_id attribute.
+                                           language=None,
+                                           word_pattern=None,
+                                           language_id=self._language_mapper.id)
+            is_found = word_to_search in self._language_mapper.words
+            return is_found
         else:
             # Execution won't get here unless we are running some test.
             # Tests are crafted to not to have same words in multiple languages so I

@@ -2,7 +2,7 @@
 Library to cipher and decipher texts using Vigenere method.
 """
 from enum import Enum, auto
-from common import _offset_text, Ciphers
+from cifra.cipher.common import _offset_text, Ciphers
 
 # To keep along with book examples I'm going to work with an only lowercase
 # charset.

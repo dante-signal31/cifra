@@ -1,7 +1,7 @@
 """
 Library to cipher and decipher texts using Caesar method.
 """
-from common import _offset_text, Ciphers, DEFAULT_CHARSET
+from cifra.cipher.common import _offset_text, Ciphers, DEFAULT_CHARSET
 
 
 def cipher(text: str, key: int, charset: str = DEFAULT_CHARSET) -> str:

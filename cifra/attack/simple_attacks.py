@@ -49,7 +49,7 @@ def _brute_force(key_generator: Union[Iterator[int], Iterator[str]],
     for key in key_generator:
         assess_function_args["key"] = key
         (word, identified_language) = assess_function(**assess_function_args)
-        if math.isclose(identified_language.winner_probability, 1, abs_tol=0.01):
+        if identified_language.winner is not None and math.isclose(identified_language.winner_probability, 1, abs_tol=0.01):
             # Early return. We've found a result good enough to not continue searching
             # any further.
             return word
