@@ -10,7 +10,8 @@ from typing import List
 from test_common.fs.ops import copy_files
 from test_common.fs.temp import temp_dir
 
-from cifra.attack.dictionaries import Dictionary, InMemoryDictionary, get_words_from_text, \
+from cifra.attack.dictionaries import Dictionary, InMemoryDictionary, DictionaryPool, \
+    get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
     IdentifiedLanguage, get_word_pattern
 
@@ -357,6 +358,18 @@ def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, l
                          ids=["english",
                               "spanish"])
 def test_identify_language_in_memory(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
-    identified_language = identify_language(text, True, loaded_dictionaries.temp_dir)
+    identified_language = identify_language(text, True, None, loaded_dictionaries.temp_dir)
+    assert identified_language.winner == language
+    assert identified_language.winner_probability == 1.0
+
+@pytest.mark.slow_test
+@pytest.mark.parametrize("text,language",
+                         [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, "english"),
+                          (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, "spanish")],
+                         ids=["english",
+                              "spanish"])
+def test_identify_language_in_memory_with_pool(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
+    with DictionaryPool.create(True, loaded_dictionaries.temp_dir) as pool:
+        identified_language = identify_language(text, True, pool=pool, _database_path=loaded_dictionaries.temp_dir)
     assert identified_language.winner == language
     assert identified_language.winner_probability == 1.0

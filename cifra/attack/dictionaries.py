@@ -98,7 +98,7 @@ class Dictionary(object):
         yield opened_dictionary
         opened_dictionary._close()
 
-    def _init_dictionary(self, create):
+    def _init_dictionary(self, create: bool):
         """ Open connections to database.
 
         :param create: Whether this language should be created in database if not present yet.
@@ -278,14 +278,13 @@ class InMemoryDictionary(Dictionary):
         """
         with Dictionary.open(language, create, _database_path) as dictionary:
             in_memory_dictionary = InMemoryDictionary.from_dictionary(dictionary)
-            in_memory_dictionary.load_words()
-            yield in_memory_dictionary
-            in_memory_dictionary._close()
+        yield in_memory_dictionary
+        in_memory_dictionary._close()
 
     def __init__(self, language: str, _database_path: Optional[str] = None):
         """ This consturctor is not intended to be used directly.
 
-        Use open() context manager or from_dictionary() instead.
+        Use open() context manager.
         """
         super().__init__(language, _database_path)
         self._words: Set[str] = set()
@@ -299,6 +298,7 @@ class InMemoryDictionary(Dictionary):
         """
         new_dictionary = cls(dictionary.language, dictionary.database_path)
         new_dictionary._init_dictionary(False)
+        new_dictionary.load_words()
         return new_dictionary
 
     @property
@@ -336,6 +336,7 @@ class DictionaryPool:
     """
 
     @classmethod
+    @contextlib.contextmanager
     def create(cls, in_memory: bool, _database_path: Optional[str] = None) -> DictionaryPool:
         """ Context manager to create a dictionary pool and close it after its usage. 
         
@@ -344,14 +345,26 @@ class DictionaryPool:
            set this parameter, but it is useful for tests.
         :return: A DictionaryPool instance you can use in your searches.
         """
+        pool = cls(in_memory, _database_path)
+        yield pool
+        pool._close()
+
+    def __init__(self, in_memory: bool, _database_path: Optional[str] = None):
         languages = Dictionary.get_available_languages(_database_path)
-        pool = cls()
+        self.languages_pool: Dict[str, Dictionary] = dict()
         for language in languages:
             if in_memory:
-                pool[language] = In
+                self.languages_pool[language] = InMemoryDictionary(language, _database_path)
+                self.languages_pool[language]._init_dictionary(create=False)
+                self.languages_pool[language].load_words()
+            else:
+                self.languages_pool[language] = Dictionary(language, _database_path)
+                self.languages_pool[language]._init_dictionary(create=False)
 
-    def __init__(self):
-        self.dictionaries: Dict[str, Dictionary] = dict()
+
+    def _close(self):
+        for language_dictionary in self.languages_pool.values():
+            language_dictionary._close()
 
 
 def get_words_from_text_file(file_pathname: str) -> Set[str]:
@@ -415,7 +428,7 @@ class IdentifiedLanguage:
     candidates: Dict[str, float]
 
 
-def identify_language(text: str, in_memory: bool, _database_path: Optional[str] = None) -> IdentifiedLanguage:
+def identify_language(text: str, in_memory: bool, pool: Optional[DictionaryPool] = None, _database_path: Optional[str] = None) -> IdentifiedLanguage:
     """ Identify language used to write text.
 
     It check each word present at text to find out if is present in any language.
@@ -423,22 +436,25 @@ def identify_language(text: str, in_memory: bool, _database_path: Optional[str] 
 
     :param text: Text to analyze.
     :param in_memory: Perform operations with an in-memory dictionary.
+    :param pool: A pool of already open dictionaries.
     :param _database_path: Absolute pathname to database file. Usually you don't
            set this parameter, but it is useful for tests.
     :return: Language selected as more likely to be the one used to write text.
     """
     words = get_words_from_text(text)
-    candidates = _get_candidates_frequency(words, in_memory, _database_path)
+    candidates = _get_candidates_frequency(words, in_memory, pool=pool, _database_path=_database_path)
     winner = _get_winner(candidates)
     return IdentifiedLanguage(winner, candidates[winner], candidates) if winner is not None \
         else IdentifiedLanguage(None, None, candidates)
 
 
-def _get_candidates_frequency(words: Set[str], in_memory: bool, _database_path: Optional[str] = None) -> Dict[str, float]:
+def _get_candidates_frequency(words: Set[str], in_memory: bool, pool: Optional[DictionaryPool] = None,
+                              _database_path: Optional[str] = None) -> Dict[str, float]:
     """ Get frequency of presence of words in each language.
 
     :param words: Text words.
     :param in_memory: Perform operations with an in-memory dictionary.
+    :param pool: A pool of already open dictionaries.
     :param _database_path: Absolute pathname to database file. Usually you don't
            set this parameter, but it is useful for tests.
     :return: Dict with all languages probabilities. Probabilities are floats
@@ -447,23 +463,29 @@ def _get_candidates_frequency(words: Set[str], in_memory: bool, _database_path: 
     """
     candidates = {}
     for language in Dictionary.get_available_languages(_database_path):
-        candidates[language] = get_candidates_frequency_at_language(words, language, in_memory, _database_path=_database_path)
+        candidates[language] = get_candidates_frequency_at_language(words, language, in_memory,
+                                                                    pool=pool, _database_path=_database_path)
     return candidates
 
 
-def get_candidates_frequency_at_language(words: Set[str], language: str, in_memory: bool, _database_path: Optional[str] = None) -> float:
+def get_candidates_frequency_at_language(words: Set[str], language: str, in_memory: bool,
+                                         pool: Optional[DictionaryPool] = None,
+                                         _database_path: Optional[str] = None) -> float:
     """ Get frequency of presence of words in given language.
 
     :param words: Text words.
     :param language: Language you want to look into.
     :param in_memory: Perform operations with an in-memory dictionary.
+    :param pool: A pool of already open dictionaries.
     :param _database_path: Absolute pathname to database file. Usually you don't
         set this parameter, but it is useful for tests.
     :return: Float from 0 to 1. The higher the frequency of presence of words in language
         the higher of this probability.
     """
     frequency = 0
-    if in_memory:
+    if pool is not None:
+        frequency = pool.languages_pool[language].get_words_presence(words)
+    elif in_memory:
         with InMemoryDictionary.open(language, _database_path=_database_path) as in_memory_dictionary:
             frequency = in_memory_dictionary.get_words_presence(words)
     else:
