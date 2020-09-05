@@ -59,6 +59,11 @@ class Dictionary(object):
         self._connection = None
         self._language_mapper = None
 
+    @property
+    def database_path(self) -> str:
+        """ Get path where this dictionary database is located. """
+        return self._database.database_path
+
     def _open(self) -> None:
         """ Do not use this method directly.
 
@@ -89,16 +94,26 @@ class Dictionary(object):
            to be opened.
         """
         opened_dictionary = Dictionary(language) if _database_path is None else Dictionary(language, _database_path)
-        opened_dictionary._open()
-        if opened_dictionary._already_created():
-            opened_dictionary._load_language_mapper()
-        else:
-            if create:
-                opened_dictionary._create_dictionary()
-            else:
-                raise NotExistingLanguage
+        opened_dictionary._init_dictionary(create)
         yield opened_dictionary
         opened_dictionary._close()
+
+    def _init_dictionary(self, create):
+        """ Open connections to database.
+
+        :param create: Whether this language should be created in database if not present yet.
+           It defaults to False. If it is set to False and language is not already present at
+           database then a dictionaries.NotExistingLanguage exception is raised, but if it is
+           set to True then language is registered in database as a new language.
+        """
+        self._open()
+        if self._already_created():
+            self._load_language_mapper()
+        else:
+            if create:
+                self._create_dictionary()
+            else:
+                raise NotExistingLanguage
 
     def _close(self) -> None:
         """ Do not use this method directly.
@@ -262,21 +277,29 @@ class InMemoryDictionary(Dictionary):
            to be opened.
         """
         with Dictionary.open(language, create, _database_path) as dictionary:
-            in_memory_dictionary = InMemoryDictionary(dictionary)
+            in_memory_dictionary = InMemoryDictionary.from_dictionary(dictionary)
             in_memory_dictionary.load_words()
             yield in_memory_dictionary
+            in_memory_dictionary._close()
 
-    def __init__(self, dictionary: Dictionary):
+    def __init__(self, language: str, _database_path: Optional[str] = None):
+        """ This consturctor is not intended to be used directly.
+
+        Use open() context manager or from_dictionary() instead.
+        """
+        super().__init__(language, _database_path)
+        self._words: Set[str] = set()
+
+    @classmethod
+    def from_dictionary(cls, dictionary: Dictionary) -> InMemoryDictionary:
         """ In memory dictionary is an evolved dictionary so you need one at the beginning.
 
         :param dictionary: Original dictionary you want to load in memory.
         :return: an instance of InMemoryDictionary.
         """
-        self.language = dictionary.language
-        self._database = dictionary._database
-        self._connection = dictionary._connection
-        self._language_mapper = dictionary._language_mapper
-        self._words: Set[str] = set()
+        new_dictionary = cls(dictionary.language, dictionary.database_path)
+        new_dictionary._init_dictionary(False)
+        return new_dictionary
 
     @property
     def words(self) -> Set[str]:
@@ -304,6 +327,31 @@ class InMemoryDictionary(Dictionary):
 
     def word_exists(self, word: str, _testing: bool = False) -> bool:
         return word in self._words
+
+
+class DictionaryPool:
+    """ Pool with already opened dictionaries. 
+    
+    This way brute force searched don't have to open dictionaries repeatedly.
+    """
+
+    @classmethod
+    def create(cls, in_memory: bool, _database_path: Optional[str] = None) -> DictionaryPool:
+        """ Context manager to create a dictionary pool and close it after its usage. 
+        
+        :param in_memory: Whether to create in-memory dictionaries or not.
+        :param _database_path: Absolute pathname to database file. Usually you don't
+           set this parameter, but it is useful for tests.
+        :return: A DictionaryPool instance you can use in your searches.
+        """
+        languages = Dictionary.get_available_languages(_database_path)
+        pool = cls()
+        for language in languages:
+            if in_memory:
+                pool[language] = In
+
+    def __init__(self):
+        self.dictionaries: Dict[str, Dictionary] = dict()
 
 
 def get_words_from_text_file(file_pathname: str) -> Set[str]:

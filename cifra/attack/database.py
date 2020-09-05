@@ -77,6 +77,7 @@ class Database(object):
 
     def __init__(self, database_path: str = DATABASE_FILENAME):
         self._engine = create_database(database_path)
+        self.database_path = database_path
 
     def open_session(self):
         session_factory = sessionmaker(bind=self._engine)
