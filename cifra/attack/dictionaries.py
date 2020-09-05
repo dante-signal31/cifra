@@ -332,7 +332,7 @@ class InMemoryDictionary(Dictionary):
 class DictionaryPool:
     """ Pool with already opened dictionaries. 
     
-    This way brute force searched don't have to open dictionaries repeatedly.
+    This way brute force searches don't have to open dictionaries repeatedly.
     """
 
     @classmethod
@@ -360,7 +360,6 @@ class DictionaryPool:
             else:
                 self.languages_pool[language] = Dictionary(language, _database_path)
                 self.languages_pool[language]._init_dictionary(create=False)
-
 
     def _close(self):
         for language_dictionary in self.languages_pool.values():

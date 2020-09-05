@@ -4,7 +4,8 @@ import multiprocessing
 import os
 from typing import Callable, Iterator, Optional, Union
 
-from cifra.attack.dictionaries import IdentifiedLanguage, identify_language, get_best_result, Dictionary
+from cifra.attack.dictionaries import IdentifiedLanguage, identify_language, get_best_result, \
+    Dictionary, DictionaryPool
 
 
 def _integer_key_generator(maximum_key: int) -> Iterator[int]:
@@ -85,10 +86,14 @@ def _brute_force_mp(key_generator: Union[Iterator[int], Iterator[str]],
         nargs = ((assess_function_args["ciphered_text"],
                   key,
                   assess_function_args["charset"],
+                  assess_function_args["in_memory"],
+                  assess_function_args["in_pool"],
                   assess_function_args["_database_path"])
                  if "charset" in assess_function_args else
                  (assess_function_args["ciphered_text"],
                   key,
+                  assess_function_args["in_memory"],
+                  assess_function_args["in_pool"],
                   assess_function_args["_database_path"])
                  for key in key_generator)
         results = pool.map(assess_function, nargs)
@@ -105,10 +110,10 @@ def _assess_key(decipher_function: Callable, **decipher_functions_args) -> (int,
     :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
     """
     database_path = decipher_functions_args.pop("_database_path")
-    in_memory = decipher_functions_args.pop("in_memory")
+    # in_memory = decipher_functions_args.pop("in_memory")
     deciphered_text = decipher_function(**decipher_functions_args)
     identified_language = identify_language(deciphered_text,
-                                            in_memory=in_memory,
+                                            in_memory=False,
                                             _database_path=database_path)
     return decipher_functions_args["key"], identified_language
 
@@ -123,8 +128,45 @@ def _assess_key_in_memory(decipher_function: Callable, **decipher_functions_args
     """
     database_path = decipher_functions_args.pop("_database_path")
     deciphered_text = decipher_function(**decipher_functions_args)
-    identified_language = identify_language_in_memory(deciphered_text,
+    identified_language = identify_language(deciphered_text,
+                                            in_memory=True,
                                             _database_path=database_path)
+    return decipher_functions_args["key"], identified_language
+
+
+def _assess_key_in_pool(decipher_function: Callable, **decipher_functions_args) -> (int, IdentifiedLanguage):
+    """Decipher text with given key and try to find out if returned text can be identified with any
+    language in our dictionaries.
+
+    :param decipher_function: Function to decipher given text.
+    :param decipher_functions_args: Key to decipher *ciphered_text*.
+    :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
+    """
+    database_path = decipher_functions_args.pop("_database_path")
+    deciphered_text = decipher_function(**decipher_functions_args)
+    with DictionaryPool.create(in_memory=False, _database_path=database_path) as pool:
+        identified_language = identify_language(deciphered_text,
+                                                in_memory=False,
+                                                pool=pool,
+                                                _database_path=database_path)
+    return decipher_functions_args["key"], identified_language
+
+
+def _assess_key_in_pool_in_memory(decipher_function: Callable, **decipher_functions_args) -> (int, IdentifiedLanguage):
+    """Decipher text with given key and try to find out if returned text can be identified with any
+    language in our dictionaries.
+
+    :param decipher_function: Function to decipher given text.
+    :param decipher_functions_args: Key to decipher *ciphered_text*.
+    :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
+    """
+    database_path = decipher_functions_args.pop("_database_path")
+    deciphered_text = decipher_function(**decipher_functions_args)
+    with DictionaryPool.create(in_memory=True, _database_path=database_path) as pool:
+        identified_language = identify_language(deciphered_text,
+                                                in_memory=False,
+                                                pool=pool,
+                                                _database_path=database_path)
     return decipher_functions_args["key"], identified_language
 
 
