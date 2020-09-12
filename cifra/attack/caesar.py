@@ -280,6 +280,8 @@ def _assess_caesar_key(ciphered_text: str, key: int, charset: str,
     :param charset: Charset used for Caesar method substitution. Both ends, ciphering
      and deciphering, should use the same charset or original text won't be properly
      recovered.
+    :param in_memory: Whether keep words in memory instead of querying database.
+    :param in_pool: Whether keep a pool of already opened connections against dictionaries.
     :param _database_path: Absolute pathname to database file. Usually you don't
      set this parameter, but it is useful for tests.
     :return: A tuple with used key and an *IdentifiedLanguage* object with assessment result.
