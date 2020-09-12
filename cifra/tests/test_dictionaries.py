@@ -346,7 +346,8 @@ def test_add_multiple_words_in_memory(temp_dir):
                          ids=["english",
                               "spanish"])
 def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, language: str):
-    identified_language = identify_language(text, False, loaded_dictionaries.temp_dir)
+    identified_language = identify_language(text, in_memory=False, pool=None,
+                                            _database_path=loaded_dictionaries.temp_dir)
     assert identified_language.winner == language
     assert identified_language.winner_probability == 1.0
 

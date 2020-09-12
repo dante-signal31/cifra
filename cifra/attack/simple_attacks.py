@@ -92,8 +92,8 @@ def _brute_force_mp(key_generator: Union[Iterator[int], Iterator[str]],
                  if "charset" in assess_function_args else
                  (assess_function_args["ciphered_text"],
                   key,
-                  assess_function_args["in_memory"],
-                  assess_function_args["in_pool"],
+                  # assess_function_args["in_memory"],
+                  # assess_function_args["in_pool"],
                   assess_function_args["_database_path"])
                  for key in key_generator)
         results = pool.map(assess_function, nargs)

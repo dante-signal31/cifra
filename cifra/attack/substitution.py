@@ -245,7 +245,8 @@ def _assess_substitution_key(ciphered_text: str, key: str, language: str, charse
     try:
         recovered_text = decipher(ciphered_text, key, charset)
         words = get_words_from_text(recovered_text)
-        frequency = get_candidates_frequency_at_language(words, language, _database_path=_database_path)
+        frequency = get_candidates_frequency_at_language(words, language, in_memory=False, pool=None,
+                                                         _database_path=_database_path)
     except WrongSubstitutionKey:
         frequency = 0
     return frequency

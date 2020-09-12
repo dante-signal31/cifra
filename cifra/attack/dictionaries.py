@@ -12,6 +12,7 @@ import collections
 import contextlib
 import dataclasses
 import re
+from collections import OrderedDict
 from typing import Optional, Set, List, Dict, Tuple
 
 import cifra.attack.database as database
@@ -287,7 +288,7 @@ class InMemoryDictionary(Dictionary):
         Use open() context manager.
         """
         super().__init__(language, _database_path)
-        self._words: Set[str] = set()
+        self._words: OrderedDict[str, None] = OrderedDict()
 
     @classmethod
     def from_dictionary(cls, dictionary: Dictionary) -> InMemoryDictionary:
@@ -302,27 +303,30 @@ class InMemoryDictionary(Dictionary):
         return new_dictionary
 
     @property
-    def words(self) -> Set[str]:
-        return self._words
+    def words(self) -> List[str]:
+        return list(self._words.keys())
 
     def load_words(self) -> None:
         """ Load in memory words from database.
 
         Can be used repeatedly to get database updates.
         """
-        for _word in self._language_mapper.words:
-            self._words.add(_word.word)
+        words = [_word.word for _word in self._language_mapper.words]
+        words.sort()
+        for _word in words:
+            self._words[_word] = None
 
     def add_word(self, word: str) -> None:
-        self._words.add(word)
+        self._words[word] = None
         super().add_word(word)
 
     def add_multiple_words(self, words: Set[str]):
-        self._words.update(words)
+        for word in words:
+            self._words[word] = None
         super().add_multiple_words(words)
 
     def remove_word(self, word: str) -> None:
-        self._words.remove(word)
+        self._words.pop(word)
         super().remove_word(word)
 
     def word_exists(self, word: str, _testing: bool = False) -> bool:
