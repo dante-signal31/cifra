@@ -13,7 +13,7 @@ from typing import Optional
 from cifra.cipher.affine import decipher, validate_key, WrongAffineKey
 from cifra.cipher.common import DEFAULT_CHARSET
 from cifra.attack.dictionaries import IdentifiedLanguage
-from cifra.attack.simple_attacks import _assess_key
+from cifra.attack.simple_attacks import _assess_key, _integer_key_generator
 from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 
@@ -38,8 +38,9 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
     :return: Affine key found.
     """
     key_space_length = len(charset) ** 2
-    return simple_brute_force(_assess_affine_key,
-                              key_space_length=key_space_length,
+    return simple_brute_force(key_generator=_integer_key_generator(key_space_length),
+                              assess_function=_assess_affine_key,
+                              # key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
                               charset=charset,
                               _database_path=_database_path)
@@ -66,7 +67,8 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     :return: Affine key found.
     """
     key_space_length = len(charset) ** 2
-    return simple_brute_force_mp(_analize_text,
+    return simple_brute_force_mp(key_generator=_integer_key_generator(key_space_length),
+                                 assess_function=_analize_text,
                                  key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  charset=charset,

@@ -8,7 +8,7 @@ import tempfile
 from typing import List
 
 from test_common.fs.ops import copy_files
-# from test_common.fs.temp import temp_dir
+from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \

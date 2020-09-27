@@ -6,7 +6,7 @@ a text using Transposition algorithm.
 from typing import Optional
 
 from cifra.attack.dictionaries import IdentifiedLanguage
-from cifra.attack.simple_attacks import _assess_key
+from cifra.attack.simple_attacks import _assess_key, _integer_key_generator
 from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 from cifra.cipher.transposition import decipher
@@ -29,8 +29,9 @@ def brute_force(ciphered_text: str, _database_path: Optional[str] = None) -> int
     :return: Transposition key found.
     """
     key_space_length = len(ciphered_text)
-    return simple_brute_force(_assess_transposition_key,
-                              key_space_length=key_space_length,
+    return simple_brute_force(key_generator=_integer_key_generator(key_space_length),
+                              assess_function=_assess_transposition_key,
+                              # key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
                               _database_path=_database_path)
 
@@ -52,7 +53,8 @@ def brute_force_mp(ciphered_text: str, _database_path: Optional[str] = None) -> 
     :return: Transposition key found.
     """
     key_space_length = len(ciphered_text)
-    return simple_brute_force_mp(_analize_text,
+    return simple_brute_force_mp(key_generator=_integer_key_generator(key_space_length),
+                                 assess_function=_analize_text,
                                  key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  _database_path=_database_path)

@@ -1,12 +1,10 @@
 """Test for attack.vigenere module."""
 import pytest
-from typing import Iterator
 from test_common.benchmark.timing import timeit
 
 from cifra.attack.vigenere import brute_force, brute_force_mp
 from cifra.cipher.vigenere import decipher
-from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionaries, \
-    loaded_dictionary_temp_dir, MICRO_DICTIONARIES
+from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionaries
 
 ORIGINAL_MESSAGE = "The real secrets are not the ones I tell."
 CIPHERED_MESSAGE = "Lue bisy sogjrtc ejr nyx lue yrwf I didy."

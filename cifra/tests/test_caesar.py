@@ -2,7 +2,7 @@
 Tests for cipher.caesar module.
 """
 import pytest
-import cipher.caesar as caesar
+import cifra.cipher.caesar as caesar
 
 ORIGINAL_MESSAGE = "This is my secret message."
 CIPHERED_MESSAGE_KEY_13 = "guv6Jv6Jz!J6rp5r7Jzr66ntrM"
