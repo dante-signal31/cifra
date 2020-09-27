@@ -8,14 +8,14 @@ import tempfile
 from typing import List
 
 from test_common.fs.ops import copy_files
-from test_common.fs.temp import temp_dir
+# from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
     IdentifiedLanguage, get_word_pattern
 
 MICRO_DICTIONARIES = {
-    "english": ["yes", "no", "dog", "cat"],
+    "english": ["yes", "no", "dog", "cat", "snake"],
     "spanish": ["si", "no", "perro", "gato"],
     "french": ["qui", "non", "chien", "chat"],
     "german": ["ja", "nein", "hund", "katze"]
@@ -129,20 +129,20 @@ def loaded_dictionaries() -> LoadedDictionaries:
 
 
 @pytest.fixture()
-def loaded_dictionary_temp_dir(temp_dir):
+def loaded_dictionary_temp_dir(tmp_path):
     """Create a dictionary at a temp dir filled with only a handful of words.
 
     :return: Yields created temp_dir to host temporal dictionary database.
     """
     # Load test data.
     for language, words in MICRO_DICTIONARIES.items():
-        with Dictionary.open(language, create=True, _database_path=temp_dir) as language_dictionary:
+        with Dictionary.open(language, create=True, _database_path=tmp_path) as language_dictionary:
             _ = [language_dictionary.add_word(word) for word in words]
     # Check all words are stored at database:
     for language, words in MICRO_DICTIONARIES.items():
-        with Dictionary.open(language, _database_path=temp_dir) as language_dictionary:
+        with Dictionary.open(language, _database_path=tmp_path) as language_dictionary:
             assert all(language_dictionary.word_exists(word) for word in words)
-    yield temp_dir
+    yield tmp_path
 
 
 @pytest.fixture(params=[(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS, "english"),
@@ -262,7 +262,7 @@ def test_get_words_from_text(text_with_punctuation_marks: str, text_without_punc
 
 @pytest.mark.slow_test
 def test_get_dictionaries_names(loaded_dictionaries: LoadedDictionaries):
-    dictionaries_names = Dictionary.get_dictionaries_names(_database_path=loaded_dictionaries.temp_dir)
+    dictionaries_names = Dictionary.get_available_languages(_database_path=loaded_dictionaries.temp_dir)
     assert dictionaries_names == loaded_dictionaries.languages
 
 

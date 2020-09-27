@@ -1,19 +1,31 @@
 """ Module to keep common functions used by caesar and transposition attacks. """
+import math
 import multiprocessing
 import os
-from typing import Callable, Iterator, Union
+from typing import Callable, Iterator, Union, Optional
 
-from cifra.attack.dictionaries import IdentifiedLanguage, identify_language, get_best_result
+from cifra.attack.dictionaries import IdentifiedLanguage, identify_language, get_best_result, Dictionary
 
 
 def _integer_key_generator(maximum_key: int) -> Iterator[int]:
+    """ Iterate through a range from 1 to maximum_key. """
     for i in range(1, maximum_key):
         yield i
 
 
+def _dictionary_word_key_generator(_database_path: Optional[str] = None) -> Iterator[str]:
+    """ Iterate through every word in our dictionaries. """
+    available_languages = Dictionary.get_available_languages(_database_path)
+    for language in available_languages:
+        with Dictionary.open(language, False, _database_path) as language_dictionary:
+            words = language_dictionary.get_all_words()
+            for word in words:
+                yield word
+
+
 def _brute_force(key_generator: Union[Iterator[int], Iterator[str]],
                  assess_function: Callable,
-                 **assess_function_args) -> int:
+                 **assess_function_args) -> Union[int, str]:
     """ Get ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -36,7 +48,14 @@ def _brute_force(key_generator: Union[Iterator[int], Iterator[str]],
     # for key in range(1, key_space_length):
     for key in key_generator:
         assess_function_args["key"] = key
-        results.append(assess_function(**assess_function_args))
+        (word, identified_language) = assess_function(**assess_function_args)
+        if identified_language.winner is not None and math.isclose(identified_language.winner_probability, 1,
+                                                                   abs_tol=0.01):
+            # Early return. We've found a result good enough to not continue searching
+            # any further.
+            return word
+        else:
+            results.append((word, identified_language))
     best_key = get_best_result(results)
     return best_key
 

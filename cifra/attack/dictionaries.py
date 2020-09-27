@@ -14,7 +14,7 @@ import dataclasses
 import re
 from typing import Optional, Set, List, Dict, Tuple
 
-import database
+import cifra.attack.database as database
 
 
 class Dictionary(object):
@@ -40,7 +40,7 @@ class Dictionary(object):
         dictionary_to_remove._close()
 
     @staticmethod
-    def get_dictionaries_names(_database_path: Optional[str] = None) -> List[str]:
+    def get_available_languages(_database_path: Optional[str] = None) -> List[str]:
         """Get languages dictionaries present at database.
 
         :param _database_path: Absolute pathname to database file. Usually you don't
@@ -167,7 +167,13 @@ class Dictionary(object):
             #     .filter(database.Language.language == self.language)\
             #     .first()
             # return any(word == word_entry.word for word_entry in language.words)
-            return any(word == word_entry.word for word_entry in self._language_mapper.words)
+            word_to_search = database.Word(word=word,
+                                           # Implemented comparison for Word just looks word and language_id attribute.
+                                           language=None,
+                                           word_pattern=None,
+                                           language_id=self._language_mapper.id)
+            is_found = word_to_search in self._language_mapper.words
+            return is_found
         else:
             # Execution won't get here unless we are running some test.
             # Tests are crafted to not to have same words in multiple languages so I
@@ -199,6 +205,11 @@ class Dictionary(object):
             map(lambda entry: entry.word,
                 filter(lambda entry: entry.word_pattern == pattern, self._language_mapper.words)))
         return words
+
+    def get_all_words(self) -> List[str]:
+        """ Get a list of every word present at dictionary."""
+        words = (word.word for word in self._language_mapper.words)
+        return list(words)
 
     def populate(self, file_pathname: str) -> None:
         """ Read a file's words and stores them at this language database.
@@ -317,7 +328,7 @@ def _get_candidates_frequency(words: Set[str], _database_path: Optional[str] = N
            the higher of this probability.
     """
     candidates = {}
-    for language in Dictionary.get_dictionaries_names(_database_path):
+    for language in Dictionary.get_available_languages(_database_path):
         # with Dictionary.open(language, _database_path=_database_path) as dictionary:
         #     candidates[language] = dictionary.get_words_presence(words)
         candidates[language] = get_candidates_frequency_at_language(words, language, _database_path=_database_path)

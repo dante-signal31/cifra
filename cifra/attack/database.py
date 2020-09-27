@@ -1,6 +1,7 @@
 """
 Cifra database definition.
 """
+from __future__ import annotations
 import os
 import sqlalchemy
 from sqlalchemy import Column, Integer, String, create_engine, ForeignKey
@@ -45,6 +46,18 @@ class Word(Base):
     def __repr__(self):
         return f'Word: {self.word} from {self.language}'
 
+    # How to implement hash?:
+    # https://stackoverflow.com/questions/2909106/whats-a-correct-and-good-way-to-implement-hash
+    def __key(self):
+        return self.word, self.language_id
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __eq__(self, other: Word):
+        if isinstance(other, Word):
+            return self.__key() == other.__key()
+        return NotImplemented
 
 def create_database(database_path: str = DATABASE_FILENAME) -> sqlalchemy.engine.Engine:
     """ Create and populate database with its default tables.
