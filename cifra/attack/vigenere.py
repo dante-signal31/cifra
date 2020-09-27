@@ -12,10 +12,11 @@ from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _dictionary_word_key_generator as dictionary_word_key_generator
 from cifra.attack.dictionaries import IdentifiedLanguage
 from cifra.cipher.vigenere import DEFAULT_CHARSET, decipher
+from cifra.tests.test_simple_attacks import mocked_dictionary_word_key_generator
 from typing import Optional
 
 
-def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None) -> str:
+def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_path: Optional[str] = None, _testing=False) -> str:
     """ Get Vigenere ciphered text key.
     Uses a brute force technique trying the entire dictionary space until finding a text
     that can be identified with any of our languages.
@@ -25,13 +26,18 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET, _database_pa
     between sequential and multiprocessing approaches.
     :param ciphered_text: Text to be deciphered.
     :param charset: Charset used for Caesar method substitution. Both ends, ciphering
-     and deciphering, should use the same charset or original text won't be properly
-     recovered.
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
     :param _database_path: Absolute pathname to database file. Usually you don't
-     set this parameter, but it is useful for tests.
+        set this parameter, but it is useful for tests.
+    :param _testing: Vigenere takes to long time to be tested against real dictionaries. So,
+        to keep tests short if _testing is set to True a mocked key generator is used so only
+        a controlled handful of words are tested to find a valid key. In simple terms: don't
+        mess with this parameter and keep it to False, it is only used for testing.
     :return: Most probable Vigenere key found.
     """
-    return simple_brute_force(key_generator=dictionary_word_key_generator(_database_path),
+    key_generator_function = dictionary_word_key_generator(_database_path) if not _testing else mocked_dictionary_word_key_generator()
+    return simple_brute_force(key_generator=key_generator_function,
                               assess_function=_assess_vigenere_key,
                               # key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
