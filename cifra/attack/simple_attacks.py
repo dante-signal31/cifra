@@ -62,7 +62,7 @@ def _brute_force(key_generator: Union[Iterator[int], Iterator[str]],
 
 def _brute_force_mp(key_generator: Union[Iterator[int], Iterator[str]],
                     assess_function: Callable,
-                    **assess_function_args) -> int:
+                    **assess_function_args) -> Union[int, str]:
     """ Get ciphered text key.
 
     Uses a brute force technique trying the entire key space until finding a text
@@ -92,7 +92,7 @@ def _brute_force_mp(key_generator: Union[Iterator[int], Iterator[str]],
                   key,
                   assess_function_args["_database_path"])
                  for key in key_generator)
-        results = pool.map(assess_function, nargs)
+        results = pool.starmap(assess_function, nargs)
     best_key = get_best_result(results)
     return best_key
 
