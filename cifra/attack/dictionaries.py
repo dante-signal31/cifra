@@ -371,7 +371,13 @@ def get_letter_frequency(text: str) -> Dict[str, float]:
         impossible because it would not exist that key). Keys are ordered from higher
         value to lesser.
     """
-    raise NotImplementedError
+    normalized_words = normalize_text(text)
+    letter_sequence = "".join(normalized_words)
+    letter_counter = Counter(letter_sequence)
+    letter_amount = sum(letter_counter.values())
+    ordered_dict = {key: float(value)/letter_amount
+                    for (key, value) in letter_counter.most_common()}
+    return ordered_dict
 
 
 def _get_winner(candidates: Dict[str, float]) -> str:

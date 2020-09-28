@@ -1,6 +1,7 @@
 """
 Tests for attack.dictionaries module.
 """
+import math
 import os
 import dataclasses
 import pytest
@@ -12,7 +13,7 @@ from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
-    IdentifiedLanguage, get_word_pattern, normalize_text
+    IdentifiedLanguage, get_word_pattern, normalize_text, get_letter_frequency
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat", "snake"],
@@ -305,3 +306,26 @@ def test_normalize_text():
                      "included", "with", "this", "ebook", "or", "online", "at"]
     returned_list = normalize_text(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS)
     assert returned_list == expected_list
+
+
+@pytest.mark.quick_test
+def test_get_letter_frequency():
+    text = "Aaaa bb, c, da-a. efg\r\nggg"
+    expected_frequencies = {
+        "a": float(6)/16,
+        "g": float(4)/16,
+        "b": float(2)/16,
+        "c": float(1)/16,
+        "d": float(1)/16,
+        "e": float(1)/16,
+        "f": float(1)/16
+    }
+    frequencies = get_letter_frequency(text)
+    # Test calculated frequencies are correct.
+    for letter in expected_frequencies:
+        assert math.isclose(frequencies[letter], expected_frequencies[letter], abs_tol=0.01)
+    # Test ordering is correct.
+    expected_letters = list(expected_frequencies.keys())
+    returned_letters = list(frequencies.keys())
+    for i in range(3):
+        assert returned_letters[i] == expected_letters[i]
