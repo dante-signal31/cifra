@@ -12,7 +12,7 @@ from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
-    IdentifiedLanguage, get_word_pattern
+    IdentifiedLanguage, get_word_pattern, normalize_text
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat", "snake"],
@@ -293,3 +293,15 @@ def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, l
     identified_language = identify_language(text, loaded_dictionaries.temp_dir)
     assert identified_language.winner == language
     assert identified_language.winner_probability == 1.0
+
+
+@pytest.mark.quick_test
+def test_normalize_text():
+    expected_list = ["this", "ebook", "is", "for", "the", "use", "of", "anyone",
+                     "anywhere", "at", "no", "cost", "and", "with", "almost", "no",
+                     "restrictions", "whatsoever", "you", "may", "copy", "it",
+                     "give", "it", "away", "or", "re", "use", "it", "under", "the",
+                     "terms", "of", "the", "project", "gutenberg", "license",
+                     "included", "with", "this", "ebook", "or", "online", "at"]
+    returned_list = normalize_text(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS)
+    assert returned_list == expected_list

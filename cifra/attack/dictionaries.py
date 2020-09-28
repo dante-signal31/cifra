@@ -8,10 +8,10 @@ A dictionary is a repository of distinct words present in an actual language.
 # behaviour at python 4.0, but nowadays, you need to import it from
 # __future__.
 from __future__ import annotations
-import collections
 import contextlib
 import dataclasses
 import re
+from collections import Counter
 from typing import Optional, Set, List, Dict, Tuple
 
 import cifra.attack.database as database
@@ -260,11 +260,21 @@ def get_words_from_text(text: str) -> Set[str]:
     :param text: Text to extract words from.
     :return: A set of words normalized to lowercase and without any punctuation mark.
     """
+    words = set(normalize_text(text))
+    return words
+
+
+def normalize_text(text: str) -> List[str]:
+    """ Get a list of lowercase words from text without any punctuation marks.
+
+    :param text: Text to extract words from.
+    :return: A list with all text words in text with lowercased and without any punctuation mark.
+    """
     lowercase_text = text.lower()
     # Line breaks are troublesome for further assessment so we remove it.
     lowercase_text = lowercase_text.replace("\n", " ")
     lowercase_text = lowercase_text.replace("\r", " ")
-    words = set(re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text))
+    words = re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text)
     return words
 
 
@@ -349,6 +359,20 @@ def get_candidates_frequency_at_language(words: Set[str], language: str, _databa
     with Dictionary.open(language, _database_path=_database_path) as dictionary:
         frecuency = dictionary.get_words_presence(words)
     return frecuency
+
+
+def get_letter_frequency(text: str) -> Dict[str, float]:
+    """ Read a text and get frequency for every letter.
+
+    :param text: Text to read.
+    :return: A dict whose keys are detected letters and values are float ranging
+        from 0 to 1, being 1 as this letter is the only one in text and 0 as this
+        letter does not happen in this text (actually that value is
+        impossible because it would not exist that key). Keys are ordered from higher
+        value to lesser.
+    """
+    raise NotImplementedError
+
 
 def _get_winner(candidates: Dict[str, float]) -> str:
     """ Return candidate with highest frequency.
