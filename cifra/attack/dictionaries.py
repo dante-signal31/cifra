@@ -12,6 +12,7 @@ import contextlib
 import dataclasses
 import re
 from collections import Counter
+from itertools import chain
 from typing import Optional, Set, List, Dict, Tuple
 
 import cifra.attack.database as database
@@ -417,19 +418,36 @@ class LetterHistogram(object):
             impossible because it would not exist that key). Keys are ordered from higher
             value to lesser.
         """
+        self._charset = charset
         normalized_words = normalize_text(text)
         letter_sequence = "".join(normalized_words)
         letter_counter = Counter(letter_sequence)
         self._total_letters: int = sum(letter_counter.values())
-        self._ordered_dict: Dict[str, int] = {key: value
-                              for (key, value) in letter_counter.most_common()}
-        charset_letters_not_in_text = (letter.lower() for letter in charset
-                                       if letter.lower() not in self._ordered_dict and letter.isalpha())
-        for letter in charset_letters_not_in_text:
-            self._ordered_dict.update({letter: 0})
+        self._ordered_dict = self._create_ordered_list(letter_counter)
         self._top_matching_letters: List[str] = []
         self._bottom_matching_letters: List[str] = []
         self.set_matching_width(matching_width)
+
+    def _create_ordered_list(self, letter_counter: Counter) -> Dict[str, int]:
+        """ Create an ordered dict ordering by values.
+
+        Equal values are sorted by keys alphabetically.
+
+        :return: Ordered dict.
+        """
+        ordered_dict_by_values = {key: value
+                                  for (key, value) in letter_counter.most_common()}
+        charset_letters_not_in_text = (letter.lower() for letter in self._charset
+                                       if letter.lower() not in ordered_dict_by_values and letter.isalpha())
+        for letter in charset_letters_not_in_text:
+            ordered_dict_by_values.update({letter: 0})
+        values_set = sorted(set(ordered_dict_by_values.values()), reverse=True)
+        key_bins = [[key for (key, _value) in ordered_dict_by_values.items() if _value == value]
+                    for value in values_set]
+        key_bins_ordered = [sorted(bin) for bin in key_bins]
+        ordered_dict_by_values_and_keys = {key: ordered_dict_by_values[key]
+                                           for key in chain(*key_bins_ordered)}
+        return ordered_dict_by_values_and_keys
 
     def __getitem__(self, item):
         return self._ordered_dict[item]

@@ -334,7 +334,7 @@ def test_get_letter_frequency():
 def test_set_matching_width():
     text = "Aaaa bb, c, da-a. efg\r\nggg"
     expected_top = ["a", "g", "b"]
-    expected_bottom = ["d", "e", "f"]
+    expected_bottom = ["x", "y", "z"]
     frequencies = LetterHistogram(text)
     frequencies.set_matching_width(3)
     assert frequencies.top_matching == expected_top
@@ -342,14 +342,15 @@ def test_set_matching_width():
 
 @pytest.mark.quick_test
 def test_match_score():
-    population_text = "ETAOIN ETAOIN ETAOIN VKJXQZ"
+    with open("cifra/tests/resources/english_book.txt") as text_file:
+        population_text = text_file.read()
     text = "Sy l nlx sr pyyacao l ylwj eiswi upar lulsxrj isr sxrjsxwjr, ia esmm " \
            "rwctjsxsza sj wmpramh, lxo txmarr jia aqsoaxwa sr pqaceiamnsxu, ia " \
            "esmm caytra jp famsaqa sj. Sy, px jia pjiac ilxo, ia sr pyyacao " \
            "rpnajisxu eiswi lyypcor l calrpx ypc lwjsxu sx lwwpcolxwa jp isr " \
            "sxrjsxwjr, ia esmm lwwabj sj aqax px jia rmsuijarj aqsoaxwa. Jia " \
            "pcsusx py nhjir sr agbmlsxao sx jisr elh. -Facjclxo Ctrramm"
-    expected_match_score = 9
+    expected_match_score = 5
     language_histogram = LetterHistogram(population_text, matching_width=6)
     text_histogram = LetterHistogram(text, matching_width=6)
     match_score = LetterHistogram.match_score(language_histogram, text_histogram)
