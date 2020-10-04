@@ -15,6 +15,7 @@ from collections import Counter
 from typing import Optional, Set, List, Dict, Tuple
 
 import cifra.attack.database as database
+import cifra.cipher.common as common
 
 
 class Dictionary(object):
@@ -361,25 +362,6 @@ def get_candidates_frequency_at_language(words: Set[str], language: str, _databa
     return frecuency
 
 
-def get_letter_frequency(text: str) -> Dict[str, float]:
-    """ Read a text and get frequency for every letter.
-
-    :param text: Text to read.
-    :return: A dict whose keys are detected letters and values are float ranging
-        from 0 to 1, being 1 as this letter is the only one in text and 0 as this
-        letter does not happen in this text (actually that value is
-        impossible because it would not exist that key). Keys are ordered from higher
-        value to lesser.
-    """
-    normalized_words = normalize_text(text)
-    letter_sequence = "".join(normalized_words)
-    letter_counter = Counter(letter_sequence)
-    letter_amount = sum(letter_counter.values())
-    ordered_dict = {key: float(value)/letter_amount
-                    for (key, value) in letter_counter.most_common()}
-    return ordered_dict
-
-
 def _get_winner(candidates: Dict[str, float]) -> str:
     """ Return candidate with highest frequency.
 
@@ -419,3 +401,92 @@ class NotExistingLanguage(Exception):
     not been created yet.
     """
     pass
+
+
+class LetterHistogram(object):
+
+    def __init__(self, text: str, matching_width: int = 6, charset: str = common.DEFAULT_CHARSET):
+        """ Create a LetterHistogram instance reading a text.
+
+        :param text: Text to read.
+        :param matching_width: Desired length for top and bottom matching list.
+        :param charset: Minimum charset expected in given text.
+        :return: A dict whose keys are detected letters and values are float ranging
+            from 0 to 1, being 1 as this letter is the only one in text and 0 as this
+            letter does not happen in this text (actually that value is
+            impossible because it would not exist that key). Keys are ordered from higher
+            value to lesser.
+        """
+        normalized_words = normalize_text(text)
+        letter_sequence = "".join(normalized_words)
+        letter_counter = Counter(letter_sequence)
+        self._total_letters: int = sum(letter_counter.values())
+        self._ordered_dict: Dict[str, int] = {key: value
+                              for (key, value) in letter_counter.most_common()}
+        charset_letters_not_in_text = (letter.lower() for letter in charset
+                                       if letter.lower() not in self._ordered_dict and letter.isalpha())
+        for letter in charset_letters_not_in_text:
+            self._ordered_dict.update({letter: 0})
+        self._top_matching_letters: List[str] = []
+        self._bottom_matching_letters: List[str] = []
+        self.set_matching_width(matching_width)
+
+    def __getitem__(self, item):
+        return self._ordered_dict[item]
+
+    def frequency(self, key: str) -> float:
+        """ Return frequency for given letter.
+
+        Frequency is the possibility of occurrence of given letter inside a normal text.
+        Its value goes from 0 to 1.
+
+        :return: Probability of occurrence of given letter.
+        """
+        return float(self._ordered_dict[key])/self._total_letters
+
+    @property
+    def top_matching(self) -> List[str]:
+        """ Return a list with most probable letters in given text.
+
+        You can change length of this list calling set_matching_width().
+        """
+        return self._top_matching_letters
+
+    @property
+    def bottom_matching(self):
+        """ Return a list with least probable letters in given text.
+
+        You can change length of this list calling set_matching_width().
+        """
+        return self._bottom_matching_letters
+
+    def letters(self):
+        """ Return letters whose frequency we have. """
+        return self._ordered_dict.keys()
+
+    def set_matching_width(self, width: int):
+        """ Set top and bottom matching to have desired length.
+
+        By default top and bottom matching lists have 6 letters length, but
+        with this method you can change that.
+        """
+        self._top_matching_letters = list(self._ordered_dict.keys())[:width]
+        self._bottom_matching_letters = list(self._ordered_dict.keys())[-width:]
+
+    @staticmethod
+    def match_score(one: LetterHistogram, other: LetterHistogram) -> int:
+        """ Compare two LetterHistogram instances.
+
+        Score is calculated counting how many letters are in matching extremes of
+        both instances. A coincidence is counted only if is present in top matching
+        in both instances or in bottom matching in both instances.
+
+        If matching extremes are of X length, then maximum score is of 2 * X.
+
+        :param one: First instance to compare.
+        :param other: Second instance to compare.
+        :return: Integer score. The higher the more coincidence between two instances.
+        """
+        top_match = sum(1 for letter in one.top_matching if letter in other.top_matching)
+        bottom_match = sum(1 for letter in one.bottom_matching if letter in other.bottom_matching)
+        return top_match + bottom_match

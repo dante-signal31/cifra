@@ -13,7 +13,7 @@ from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
-    IdentifiedLanguage, get_word_pattern, normalize_text, get_letter_frequency
+    IdentifiedLanguage, get_word_pattern, normalize_text, LetterHistogram
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat", "snake"],
@@ -320,12 +320,37 @@ def test_get_letter_frequency():
         "e": float(1)/16,
         "f": float(1)/16
     }
-    frequencies = get_letter_frequency(text)
-    # Test calculated frequencies are correct.
+    histogram = LetterHistogram(text)
+    # Test calculated histogram are correct.
     for letter in expected_frequencies:
-        assert math.isclose(frequencies[letter], expected_frequencies[letter], abs_tol=0.01)
+        assert math.isclose(histogram.frequency(letter), expected_frequencies[letter], abs_tol=0.01)
     # Test ordering is correct.
     expected_letters = list(expected_frequencies.keys())
-    returned_letters = list(frequencies.keys())
+    returned_letters = list(histogram.letters())
     for i in range(3):
         assert returned_letters[i] == expected_letters[i]
+
+@pytest.mark.quick_test
+def test_set_matching_width():
+    text = "Aaaa bb, c, da-a. efg\r\nggg"
+    expected_top = ["a", "g", "b"]
+    expected_bottom = ["d", "e", "f"]
+    frequencies = LetterHistogram(text)
+    frequencies.set_matching_width(3)
+    assert frequencies.top_matching == expected_top
+    assert frequencies.bottom_matching == expected_bottom
+
+@pytest.mark.quick_test
+def test_match_score():
+    population_text = "ETAOIN ETAOIN ETAOIN VKJXQZ"
+    text = "Sy l nlx sr pyyacao l ylwj eiswi upar lulsxrj isr sxrjsxwjr, ia esmm " \
+           "rwctjsxsza sj wmpramh, lxo txmarr jia aqsoaxwa sr pqaceiamnsxu, ia " \
+           "esmm caytra jp famsaqa sj. Sy, px jia pjiac ilxo, ia sr pyyacao " \
+           "rpnajisxu eiswi lyypcor l calrpx ypc lwjsxu sx lwwpcolxwa jp isr " \
+           "sxrjsxwjr, ia esmm lwwabj sj aqax px jia rmsuijarj aqsoaxwa. Jia " \
+           "pcsusx py nhjir sr agbmlsxao sx jisr elh. -Facjclxo Ctrramm"
+    expected_match_score = 9
+    language_histogram = LetterHistogram(population_text, matching_width=6)
+    text_histogram = LetterHistogram(text, matching_width=6)
+    match_score = LetterHistogram.match_score(language_histogram, text_histogram)
+    assert match_score == expected_match_score
