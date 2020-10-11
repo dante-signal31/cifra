@@ -115,3 +115,14 @@ class LetterHistogram(object):
         top_match = sum(1 for letter in one.top_matching if letter in other.top_matching)
         bottom_match = sum(1 for letter in one.bottom_matching if letter in other.bottom_matching)
         return top_match + bottom_match
+
+
+def find_repeated_sequences(text: str, length: int = 3) -> Dict[str, List[int]]:
+    """ Take a text a return repeated patterns with its separations.
+
+    :param text: Text to analyze.
+    :param length: Length of patterns to search for.
+    :return: A dict whose keys are found patterns and its values are a list of
+        integers with separations between found patters.
+    """
+    raise NotImplementedError

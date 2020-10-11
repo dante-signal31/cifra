@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from cifra.attack.frequency import LetterHistogram, normalize_text
+from cifra.attack.frequency import LetterHistogram, normalize_text, find_repeated_sequences
 from cifra.tests.test_dictionaries import ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS
 
 
@@ -70,3 +70,15 @@ def test_match_score():
     text_histogram = LetterHistogram(text, matching_width=6)
     match_score = LetterHistogram.match_score(language_histogram, text_histogram)
     assert match_score == expected_match_score
+
+
+@pytest.mark.quick_test
+def test_find_repeated_sequences():
+    ciphered_text = "PPQCA XQVEKG YBNKMAZU YBNGBAL JON I TSZM JYIM. VRAG VOHT VRAU C TKSG. DDWUO XITLAZU VAVV RAZ C VKB QP IWPOU"
+    expected_patterns = {
+        "ybn": [8],
+        "azu": [48],
+        "vra": [8, 24, 32]
+    }
+    found_patterns = find_repeated_sequences(ciphered_text, length=3)
+    assert found_patterns == expected_patterns
