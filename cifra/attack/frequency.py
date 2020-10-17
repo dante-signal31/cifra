@@ -135,11 +135,10 @@ def find_repeated_sequences(text: str, length: int = 3) -> Dict[str, List[int]]:
             continue
         index = i
         previous_index = 0
+        # First pass: adjacent spaces.
         while index < char_string_length:
             index = char_string.find(sequence_to_find, index)
             if index == -1:
-                # index = 0
-                # previous_index = 0
                 break
             elif not previous_index == 0:
                 separation = index - previous_index
@@ -152,4 +151,14 @@ def find_repeated_sequences(text: str, length: int = 3) -> Dict[str, List[int]]:
                         sequences[sequence_to_find].append(separation)
             previous_index = index
             index += length
+    # Second pass: spaces not adjacent
+    for sequence in sequences:
+        not_adjacent_spaces = []
+        sequence_length = len(sequences[sequence])
+        if sequence_length > 1:
+            for i, space in enumerate(sequences[sequence]):
+                for n in range(sequence_length, i+1, -1):
+                    spaces_to_add = sequences[sequence][i+1:n]
+                    not_adjacent_spaces.append(space + sum(spaces_to_add))
+            sequences[sequence].extend(not_adjacent_spaces)
     return sequences
