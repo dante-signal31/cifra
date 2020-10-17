@@ -123,42 +123,59 @@ def find_repeated_sequences(text: str, length: int = 3) -> Dict[str, List[int]]:
     :param text: Text to analyze.
     :param length: Length of patterns to search for.
     :return: A dict whose keys are found patterns and its values are a list of
-        integers with separations between found patters.
+        integers with separations between found patterns.
+    """
+    sequences = _find_adjacent_separations(text, length)
+    _find_not_adjacent_separations(sequences)
+    return sequences
+
+
+def _find_adjacent_separations(text: str, length: int) -> Dict[str, List[int]]:
+    """ Find repeated sequences of given length and separations between adjacent
+    repeated sequences.
+
+    :param text: Text to analyze.
+    :param length: Length of patterns to search for.
+    :return: A dict whose keys are found patterns and its values are a list of
+        integers with separations between adjacent found patters.
     """
     normalized_words = normalize_text(text)
     char_string = "".join(normalized_words)
     char_string_length = len(text)
-    sequences: Dict[str, List[int]] = dict()
+    sequences = dict()
     for i, char in enumerate(char_string):
-        sequence_to_find = char_string[i:i+length]
-        if sequence_to_find in sequences:
-            continue
-        index = i
-        previous_index = 0
-        # First pass: adjacent spaces.
-        while index < char_string_length:
-            index = char_string.find(sequence_to_find, index)
-            if index == -1:
-                break
-            elif not previous_index == 0:
-                separation = index - previous_index
-                if sequence_to_find not in sequences:
-                    sequences[sequence_to_find] = [separation]
+        sequence_to_find = char_string[i:i + length]
+        if sequence_to_find not in sequences:
+            index = i + length
+            previous_index = i
+            while index < char_string_length:
+                if (index := char_string.find(sequence_to_find, index)) == -1:
+                    break
                 else:
-                    try:
-                        sequences[sequence_to_find].index(sequence_to_find)
-                    except ValueError:
+                    separation = index - previous_index
+                    if sequence_to_find not in sequences:
+                        sequences[sequence_to_find] = [separation]
+                    else:
                         sequences[sequence_to_find].append(separation)
-            previous_index = index
-            index += length
-    # Second pass: spaces not adjacent
+                previous_index = index
+                index += length
+    return sequences
+
+
+def _find_not_adjacent_separations(sequences: Dict[str, List[int]]) -> None:
+    """ Complete a dict of repeated sequences calculating separation between
+    not adjacent repetitions.
+
+    :param sequences: A dict whose keys are found patterns and its values are a list of
+        integers with separations between adjacent found patters. This dict will be
+        updated in place with calculated sequences.
+    """
     for sequence in sequences:
         not_adjacent_spaces = []
         sequence_length = len(sequences[sequence])
         if sequence_length > 1:
             for i, space in enumerate(sequences[sequence]):
-                for n in range(sequence_length, i+1, -1):
-                    spaces_to_add = sequences[sequence][i+1:n]
+                for n in range(sequence_length, i + 1, -1):
+                    spaces_to_add = sequences[sequence][i + 1:n]
                     not_adjacent_spaces.append(space + sum(spaces_to_add))
             sequences[sequence].extend(not_adjacent_spaces)
-    return sequences
