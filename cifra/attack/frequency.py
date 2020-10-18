@@ -179,3 +179,25 @@ def _find_not_adjacent_separations(sequences: Dict[str, List[int]]) -> None:
                     spaces_to_add = sequences[sequence][i + 1:n]
                     not_adjacent_spaces.append(space + sum(spaces_to_add))
             sequences[sequence].extend(not_adjacent_spaces)
+
+
+def get_substrings(ciphertext: str, step: int) -> List[str]:
+    """ Get substrings for a given step.
+
+    .. code-block:: python
+        ciphertext = "abcdabcdabcdabcd"
+        substrings = get_substrings(ciphertext, 4)
+        assert substrings[0] == "aaaa"
+        assert substrings[1] == "bbbb"
+        assert substrings[2] == "cccc"
+        assert substrings[3] == "dddd"
+
+    :param ciphertext: Text to extract substrings from.
+    :param step: How many letters lap before extracting next substring letter.
+    :return: A list with substrings. This lists will have the same length as step parameter.
+    """
+    substrings = []
+    for i in range(step):
+        substring = ciphertext[i::step]
+        substrings.append(substring)
+    return substrings

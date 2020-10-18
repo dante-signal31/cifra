@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from cifra.attack.frequency import LetterHistogram, normalize_text, find_repeated_sequences
+from cifra.attack.frequency import LetterHistogram, normalize_text, find_repeated_sequences, get_substrings
 from cifra.tests.test_dictionaries import ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS
 
 
@@ -100,3 +100,13 @@ def test_find_repeated_sequences_many_repetitions():
     }
     found_patterns = find_repeated_sequences(ciphered_text, length=3)
     assert set(found_patterns) == set(expected_patterns)
+
+
+@pytest.mark.quick_test
+def test_get_substrings():
+    ciphertext = "abcdabcdabcdabcd"
+    substrings = get_substrings(ciphertext, 4)
+    assert substrings[0] == "aaaa"
+    assert substrings[1] == "bbbb"
+    assert substrings[2] == "cccc"
+    assert substrings[3] == "dddd"

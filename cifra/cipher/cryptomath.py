@@ -1,6 +1,6 @@
 # Cryptomath Module
 # https://www.nostarch.com/crackingcodes/ (BSD Licensed)
-from typing import Optional
+from typing import Optional, List, Set
 
 
 def gcd(a: int, b: int) -> int:
@@ -36,3 +36,28 @@ def find_mod_inverse(a: int, m: int) -> Optional[int]:
         result = u1 % m
         return result
 
+
+def find_factors(number: int) -> List[int]:
+    """ Get math factors for this number.
+
+    Number 1 is not returned as factor, because is evident.
+
+    :param number: Number to get factors from.
+    :return: A list with found factors.
+    """
+    factors = []
+    for candidate in range(2, number+1):
+        if number % candidate == 0:
+            factors.append(candidate)
+    return factors
+
+
+def find_common_factors(*factor_lists: List[int]) -> Set[int]:
+    """ Get a sequence of lists of factors and return factors common for them all.
+
+    :param factor_lists: A variable length sequence of list. Every list has factors for a number:
+    :return: A set with common factors
+    """
+    common_factors = set(factor_lists[0])
+    common_factors.intersection_update(*(set(factors) for factors in factor_lists))
+    return common_factors
