@@ -250,7 +250,7 @@ def match_substring(substring: str, reference_histogram: LetterHistogram) -> int
     return match_result
 
 
-def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogram, amount: int) -> List[str]:
+def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogram, amount: int = 5) -> List[str]:
     """ Get the most likely letters used to get given ciphered substring in the context of
     given language histogram.
 
@@ -262,7 +262,7 @@ def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogra
     scores: Dict[str, int] = dict()
     for letter in reference_histogram.charset:
         deciphered_text = decipher(substring, letter, reference_histogram.charset)
-        deciphered_histogram = LetterHistogram(deciphered_text, charset=reference_histogram.charset)
+        deciphered_histogram = LetterHistogram(text=deciphered_text, charset=reference_histogram.charset)
         score = LetterHistogram.match_score(deciphered_histogram, reference_histogram)
         scores[letter] = score
     scores_counter = Counter(scores)
