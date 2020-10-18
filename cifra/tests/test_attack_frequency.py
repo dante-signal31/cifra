@@ -5,9 +5,21 @@ import math
 
 import pytest
 
-from cifra.attack.frequency import LetterHistogram, normalize_text, find_repeated_sequences, get_substrings
+from cifra.attack.frequency import LetterHistogram, normalize_text, \
+    find_repeated_sequences, get_substrings, match_substring, find_most_likely_subkeys
 from cifra.tests.test_dictionaries import ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS
 
+
+@pytest.fixture(scope="session")
+def language_histogram() -> LetterHistogram:
+    """Create a letter histogram for english language.
+
+    :return: Yields a LetterHistogram for english language.
+    """
+    with open("cifra/tests/resources/english_book.txt") as text_file:
+        population_text = text_file.read()
+    language_histogram = LetterHistogram(population_text, matching_width=6)
+    yield language_histogram
 
 @pytest.mark.quick_test
 def test_normalize_text():
@@ -56,9 +68,7 @@ def test_set_matching_width():
 
 
 @pytest.mark.quick_test
-def test_match_score():
-    with open("cifra/tests/resources/english_book.txt") as text_file:
-        population_text = text_file.read()
+def test_match_score(language_histogram):
     text = "Sy l nlx sr pyyacao l ylwj eiswi upar lulsxrj isr sxrjsxwjr, ia esmm " \
            "rwctjsxsza sj wmpramh, lxo txmarr jia aqsoaxwa sr pqaceiamnsxu, ia " \
            "esmm caytra jp famsaqa sj. Sy, px jia pjiac ilxo, ia sr pyyacao " \
@@ -66,7 +76,6 @@ def test_match_score():
            "sxrjsxwjr, ia esmm lwwabj sj aqax px jia rmsuijarj aqsoaxwa. Jia " \
            "pcsusx py nhjir sr agbmlsxao sx jisr elh. -Facjclxo Ctrramm"
     expected_match_score = 5
-    language_histogram = LetterHistogram(population_text, matching_width=6)
     text_histogram = LetterHistogram(text, matching_width=6)
     match_score = LetterHistogram.match_score(language_histogram, text_histogram)
     assert match_score == expected_match_score
@@ -110,3 +119,20 @@ def test_get_substrings():
     assert substrings[1] == "bbbb"
     assert substrings[2] == "cccc"
     assert substrings[3] == "dddd"
+
+
+@pytest.mark.quick_test
+def test_match_substring(language_histogram):
+    substring = "OZDAZAZMYHZGZJCWZZZJHT"
+    expected_result = 4
+    match_result = match_substring(substring, language_histogram)
+    assert match_result == expected_result
+
+
+@pytest.mark.quick_test
+def test_most_likely_subkey(language_histogram):
+    ciphered_substring = "PAEBABANZIAHAKDXAAAKIU"
+    expected_result = ["a", "p", "t", "w", "x"]
+    result = find_most_likely_subkeys(ciphered_substring, language_histogram, 5)
+    assert result == expected_result
+

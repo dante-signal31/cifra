@@ -9,11 +9,28 @@ from typing import Dict, List, Set
 
 from cifra.attack.dictionaries import normalize_text
 import cifra.cipher.common as common
+from cifra.cipher.vigenere import decipher, DEFAULT_CHARSET
 
 
 class LetterHistogram(object):
 
-    def __init__(self, text: str, matching_width: int = 6, charset: str = common.DEFAULT_CHARSET):
+    def __init__(self, letters: Dict[str, int], matching_width: int = 6, charset: str = DEFAULT_CHARSET):
+        """ Create a LetterHistogram instance from a dict with letters as keys and occurrences for values.
+
+        :param letters: A dict with letters as keys and occurrences for values.
+        :param matching_width: Desired length for top and bottom matching list.
+        :param charset: Minimum charset expected in given text.
+        """
+        self._charset = charset
+        self._total_letters = sum(letters.values())
+        letter_counter = Counter(letters)
+        self._ordered_dict = self._create_ordered_dict(letter_counter)
+        self._top_matching_letters: List[str] = []
+        self._bottom_matching_letters: List[str] = []
+        self.set_matching_width(matching_width)
+
+
+    def __init__(self, text: str, matching_width: int = 6, charset: str = DEFAULT_CHARSET):
         """ Create a LetterHistogram instance reading a text.
 
         :param text: Text to read.
@@ -30,12 +47,12 @@ class LetterHistogram(object):
         letter_sequence = "".join(normalized_words)
         letter_counter = Counter(letter_sequence)
         self._total_letters: int = sum(letter_counter.values())
-        self._ordered_dict = self._create_ordered_list(letter_counter)
+        self._ordered_dict = self._create_ordered_dict(letter_counter)
         self._top_matching_letters: List[str] = []
         self._bottom_matching_letters: List[str] = []
         self.set_matching_width(matching_width)
 
-    def _create_ordered_list(self, letter_counter: Counter) -> Dict[str, int]:
+    def _create_ordered_dict(self, letter_counter: Counter) -> Dict[str, int]:
         """ Create an ordered dict ordering by values.
 
         Equal values are sorted by keys alphabetically.
@@ -85,9 +102,18 @@ class LetterHistogram(object):
         """
         return self._bottom_matching_letters
 
+    @property
+    def charset(self):
+        """ Return charset used in this histogram. """
+        return self._charset
+
     def letters(self):
         """ Return letters whose frequency we have. """
         return self._ordered_dict.keys()
+
+    def items(self):
+        """ Return letters-counters pairs. """
+        return self._ordered_dict.items()
 
     def set_matching_width(self, width: int):
         """ Set top and bottom matching to have desired length.
@@ -201,3 +227,38 @@ def get_substrings(ciphertext: str, step: int) -> List[str]:
         substring = ciphertext[i::step]
         substrings.append(substring)
     return substrings
+
+
+def match_substring(substring: str, reference_histogram: LetterHistogram) -> int:
+    """ Compare a substring against a known letter histogram.
+
+    The higher the returned value the more likely this substring is from the same
+    language as reference histogram.
+
+    :param substring: String to compare.
+    :param reference_histogram: Histogram to compare against.
+    :return: Score value.
+    """
+    substring_histogram = LetterHistogram(substring)
+    match_result = LetterHistogram.match_score(substring_histogram, reference_histogram)
+    return match_result
+
+
+def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogram, amount: int) -> List[str]:
+    """ Get the most likely letters used to get given ciphered substring in the context of
+    given language histogram.
+
+    :param substring: Ciphered substring.
+    :param reference_histogram: Histogram to compare against.
+    :param amount: How many likely subkeys to estimate.
+    :return: A list of letters as most likely candidates to be the key for given ciphered substring.
+    """
+    scores: Dict[str, int] = dict()
+    for letter in reference_histogram.charset:
+        deciphered_text = decipher(substring, letter, reference_histogram.charset)
+        deciphered_histogram = LetterHistogram(deciphered_text, charset=reference_histogram.charset)
+        score = LetterHistogram.match_score(deciphered_histogram, reference_histogram)
+        scores[letter] = score
+    scores_counter = Counter(scores)
+    most_likely_subkeys = sorted([key for key, value in scores_counter.most_common(amount)])
+    return most_likely_subkeys
