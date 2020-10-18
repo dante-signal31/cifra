@@ -1,6 +1,7 @@
 """ Common functions to be used across cipher modules. """
 from enum import Enum, auto
-
+import re
+from typing import List
 from cifra.cipher.cryptomath import find_mod_inverse
 
 DEFAULT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 !?.'
@@ -84,6 +85,19 @@ def get_affine_key_parts(key: int, charset_length: int) -> (int, int):
     adding_key = key % charset_length
     return multiplying_key, adding_key
 
+
+def normalize_text(text: str) -> List[str]:
+    """ Get a list of lowercase words from text without any punctuation marks.
+
+    :param text: Text to extract words from.
+    :return: A list with all text words in text with lowercased and without any punctuation mark.
+    """
+    lowercase_text = text.lower()
+    # Line breaks are troublesome for further assessment so we remove it.
+    lowercase_text = lowercase_text.replace("\n", " ")
+    lowercase_text = lowercase_text.replace("\r", " ")
+    words = re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text)
+    return words
 
 
 

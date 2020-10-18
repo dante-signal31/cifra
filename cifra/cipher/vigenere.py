@@ -59,6 +59,7 @@ def _vigenere_offset(text: str, key: str, operation: Vigenere,
 
     Don't use this function directly.
     """
+    key = key.lower()
     advance = True if operation == Vigenere.CIPHER else False
     key_length = len(key)
     offset_chars = []

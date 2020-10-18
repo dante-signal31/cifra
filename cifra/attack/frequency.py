@@ -7,33 +7,35 @@ from itertools import chain
 from collections import Counter
 from typing import Dict, List, Set
 
-from cifra.attack.dictionaries import normalize_text
-import cifra.cipher.common as common
+from cifra.cipher.common import normalize_text
 from cifra.cipher.vigenere import decipher, DEFAULT_CHARSET
 
 
 class LetterHistogram(object):
 
-    def __init__(self, letters: Dict[str, int], matching_width: int = 6, charset: str = DEFAULT_CHARSET):
-        """ Create a LetterHistogram instance from a dict with letters as keys and occurrences for values.
+    # def __init__(self, letters: Dict[str, int], matching_width: int = 6, charset: str = DEFAULT_CHARSET):
+    #     """ Create a LetterHistogram instance from a dict with letters as keys and occurrences for values.
+    #
+    #     :param letters: A dict with letters as keys and occurrences for values.
+    #     :param matching_width: Desired length for top and bottom matching list.
+    #     :param charset: Minimum charset expected in given text.
+    #     """
+    #     self._charset = charset
+    #     self._total_letters = sum(letters.values())
+    #     letter_counter = Counter(letters)
+    #     self._ordered_dict = self._create_ordered_dict(letter_counter)
+    #     self._top_matching_letters: List[str] = []
+    #     self._bottom_matching_letters: List[str] = []
+    #     self.set_matching_width(matching_width)
 
-        :param letters: A dict with letters as keys and occurrences for values.
-        :param matching_width: Desired length for top and bottom matching list.
-        :param charset: Minimum charset expected in given text.
-        """
-        self._charset = charset
-        self._total_letters = sum(letters.values())
-        letter_counter = Counter(letters)
-        self._ordered_dict = self._create_ordered_dict(letter_counter)
-        self._top_matching_letters: List[str] = []
-        self._bottom_matching_letters: List[str] = []
-        self.set_matching_width(matching_width)
+    def __init__(self, *, text: str = None, letters: Dict[str, int] = None, matching_width: int = 6, charset: str = DEFAULT_CHARSET):
+        """ Create a LetterHistogram instance.
 
-
-    def __init__(self, text: str, matching_width: int = 6, charset: str = DEFAULT_CHARSET):
-        """ Create a LetterHistogram instance reading a text.
+        If letter stays as None instance is created reading a text. But it is not
+        None then histogram instance is created
 
         :param text: Text to read.
+        :param letters: A dict with letters as keys and occurrences for values.
         :param matching_width: Desired length for top and bottom matching list.
         :param charset: Minimum charset expected in given text.
         :return: A dict whose keys are detected letters and values are float ranging
@@ -43,10 +45,14 @@ class LetterHistogram(object):
             value to lesser.
         """
         self._charset = charset
-        normalized_words = normalize_text(text)
-        letter_sequence = "".join(normalized_words)
-        letter_counter = Counter(letter_sequence)
-        self._total_letters: int = sum(letter_counter.values())
+        if letters is None:
+            normalized_words = normalize_text(text)
+            letter_sequence = "".join(normalized_words)
+            letter_counter = Counter(letter_sequence)
+            self._total_letters: int = sum(letter_counter.values())
+        else:
+            self._total_letters = sum(letters.values())
+            letter_counter = Counter(letters)
         self._ordered_dict = self._create_ordered_dict(letter_counter)
         self._top_matching_letters: List[str] = []
         self._bottom_matching_letters: List[str] = []

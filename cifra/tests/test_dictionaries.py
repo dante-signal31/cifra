@@ -13,7 +13,7 @@ from test_common.fs.temp import temp_dir
 
 from cifra.attack.dictionaries import Dictionary, get_words_from_text, \
     NotExistingLanguage, get_words_from_text_file, identify_language, \
-    IdentifiedLanguage, get_word_pattern
+    IdentifiedLanguage, get_word_pattern, get_histogram_from_text_file
 
 MICRO_DICTIONARIES = {
     "english": ["yes", "no", "dog", "cat", "snake"],
@@ -249,6 +249,18 @@ def test_populate_words_from_text_files(temporary_text_file):
 
 
 @pytest.mark.quick_test
+def test_populate_database_histogram_from_text_file(temp_dir):
+    text_file_pathname = "cifra/tests/resources/english_book.txt"
+    with Dictionary.open("english", create=True, _database_path=temp_dir) as current_dictionary:
+        current_dictionary.populate(text_file_pathname)
+    with Dictionary.open("english", create=False, _database_path=temp_dir) as current_dictionary:
+        assert current_dictionary.letter_histogram["e"] == 35127
+        assert current_dictionary.letter_histogram["t"] == 26406
+        assert current_dictionary.letter_histogram["a"] == 24684
+        assert current_dictionary.letter_histogram["o"] == 22983
+
+
+@pytest.mark.quick_test
 @pytest.mark.parametrize("text_with_punctuation_marks,text_without_punctuation_marks",
                          [(ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS, ENGLISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
                           (SPANISH_TEXT_WITH_PUNCTUATIONS_MARKS, SPANISH_TEXT_WITHOUT_PUNCTUATIONS_MARKS),
@@ -294,3 +306,12 @@ def test_identify_language(loaded_dictionaries: LoadedDictionaries, text: str, l
     identified_language = identify_language(text, loaded_dictionaries.temp_dir)
     assert identified_language.winner == language
     assert identified_language.winner_probability == 1.0
+
+
+@pytest.mark.quick_test
+def test_get_letter_histogram_from_text_file():
+    language_histogram = get_histogram_from_text_file("cifra/tests/resources/english_book.txt")
+    assert language_histogram["e"] == 35127
+    assert language_histogram["t"] == 26406
+    assert language_histogram["a"] == 24684
+    assert language_histogram["o"] == 22983

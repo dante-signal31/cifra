@@ -11,12 +11,13 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import re
-from collections import Counter
-from itertools import chain
+# from collections import Counter
+# from itertools import chain
 from typing import Optional, Set, List, Dict, Tuple
 
 import cifra.attack.database as database
-import cifra.cipher.common as common
+from cifra.attack.frequency import LetterHistogram
+from cifra.cipher.common import normalize_text
 
 
 class Dictionary(object):
@@ -60,6 +61,7 @@ class Dictionary(object):
         self._database = database.Database() if database_path is None else database.Database(database_path)
         self._connection = None
         self._language_mapper = None
+        self._letter_histogram = None
 
     def _open(self) -> None:
         """ Do not use this method directly.
@@ -99,6 +101,8 @@ class Dictionary(object):
                 opened_dictionary._create_dictionary()
             else:
                 raise NotExistingLanguage
+        histogram_dict = {letter_histogram.letter: letter_histogram.ocurrences for letter_histogram in opened_dictionary._language_mapper.histograms}
+        opened_dictionary._letter_histogram = LetterHistogram(letters = histogram_dict)
         yield opened_dictionary
         opened_dictionary._close()
 
@@ -116,6 +120,10 @@ class Dictionary(object):
         self._language_mapper = self._connection.query(database.Language) \
             .filter(database.Language.language == self.language)\
             .first()
+
+    @property
+    def letter_histogram(self) -> LetterHistogram:
+        return self._letter_histogram
 
     def add_word(self, word: str) -> None:
         """ Add given word to dictionary.
@@ -218,8 +226,18 @@ class Dictionary(object):
 
         :param file_pathname: Absolute path to file with text to analyze.
         """
+        self._letter_histogram = get_histogram_from_text_file(file_pathname)
+        self._store_histogram()
         words = get_words_from_text_file(file_pathname)
         self.add_multiple_words(words)
+
+    def _store_histogram(self):
+        for letter, counter in self._letter_histogram.items():
+            letter_histogram = database.LetterHistogram(letter=letter, ocurrences=counter,
+                                                        language=self._language_mapper,
+                                                        language_id=self._language_mapper.id)
+            self._language_mapper.histograms.add(letter_histogram)
+            self._connection.commit()
 
     def _already_created(self) -> bool:
         """ Check if a table for this instance language already exists at database
@@ -253,6 +271,18 @@ def get_words_from_text_file(file_pathname: str) -> Set[str]:
     return words
 
 
+def get_histogram_from_text_file(file_pathname: str) -> LetterHistogram:
+    """ Get letter histogram from given file.
+
+    :param file_pathname: Absolute filename to file to be read.
+    :return: A letter histogram with given text letters occurrences.
+    """
+    with open(file_pathname) as text_file:
+        population_text = text_file.read()
+    language_histogram = LetterHistogram(text=population_text)
+    return language_histogram
+
+
 def get_words_from_text(text: str) -> Set[str]:
     """ Extract words from given text.
 
@@ -263,20 +293,6 @@ def get_words_from_text(text: str) -> Set[str]:
     :return: A set of words normalized to lowercase and without any punctuation mark.
     """
     words = set(normalize_text(text))
-    return words
-
-
-def normalize_text(text: str) -> List[str]:
-    """ Get a list of lowercase words from text without any punctuation marks.
-
-    :param text: Text to extract words from.
-    :return: A list with all text words in text with lowercased and without any punctuation mark.
-    """
-    lowercase_text = text.lower()
-    # Line breaks are troublesome for further assessment so we remove it.
-    lowercase_text = lowercase_text.replace("\n", " ")
-    lowercase_text = lowercase_text.replace("\r", " ")
-    words = re.findall(re.compile(r'[^\W\d_]+', re.UNICODE), lowercase_text)
     return words
 
 

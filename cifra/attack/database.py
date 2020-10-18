@@ -28,6 +28,10 @@ class Language(Base):
                          back_populates="language",
                          cascade="all, delete, delete-orphan",
                          collection_class=set)
+    histograms = relationship("LetterHistogram",
+                              back_populates="language",
+                              cascade="all, delete, delete-orphan",
+                              collection_class=set)
 
     def __repr__(self):
         return f'Language: {self.language}'
@@ -58,6 +62,18 @@ class Word(Base):
         if isinstance(other, Word):
             return self.__key() == other.__key()
         return NotImplemented
+
+
+class LetterHistogram(Base):
+    __tablename__ = 'histograms'
+
+    id = Column(Integer, primary_key=True)
+    letter = Column(String, nullable=False)
+    ocurrences = Column(Integer, nullable=False)
+    language_id = Column(Integer, ForeignKey('languages.id'))
+    language = relationship("Language",
+                            back_populates="histograms")
+
 
 def create_database(database_path: str = DATABASE_FILENAME) -> sqlalchemy.engine.Engine:
     """ Create and populate database with its default tables.
