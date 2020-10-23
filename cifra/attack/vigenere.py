@@ -8,7 +8,7 @@ message was in a language you don't have a dictionary for, then correct key
 won't be detected.
 """
 from itertools import chain, permutations
-from typing import Optional, Iterator, List, Set
+from typing import Optional, Iterator, List, Set, Union, Generator
 from cifra.attack.simple_attacks import _assess_key
 from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
@@ -168,30 +168,6 @@ def frequency_key_generator(ciphered_text: str,
         yield key
 
 
-def _get_likely_keys(substrings: List[str], language_dictionary: Dictionary) -> List[str]:
-    """ Get likely subkeys for given substrings.
-
-    :param substrings: List of substrings extracted from current ciphered text.
-    :param language_dictionary: Language to compare its histogram with.
-    :return: List of likely keys to try.
-    """
-    likely_keys = []
-    likely_key_letters_bins = (find_most_likely_subkeys(substring,
-                                                        language_dictionary.letter_histogram)
-                               for substring in substrings)
-    # I'm going to use a Mapping just to get every possible combination
-    # of characters.
-    likely_key_letters_mapping = Mapping(
-        charset=DEFAULT_CHARSET)  # We don't expect keys longer than DEFAULT_CHARSET length.
-    bins_dict = {f"{DEFAULT_CHARSET[i]}": set(letter_bin) for i, letter_bin in enumerate(likely_key_letters_bins)}
-    likely_key_letters_mapping.load_content(bins_dict)
-    likely_key_letters_combinations = likely_key_letters_mapping.get_possible_mappings()
-    for combination in likely_key_letters_combinations:
-        key_letters = [value.pop() for _, value in combination.items() if len(value) > 0]
-        likely_keys.append("".join(key_letters))
-    return likely_keys
-
-
 def _get_likely_key_lengths(ciphered_text: str, maximum_key_length: int) -> List[int]:
     """ Get most likely key lengths using Kasiski examination.
 
@@ -205,3 +181,40 @@ def _get_likely_key_lengths(ciphered_text: str, maximum_key_length: int) -> List
     likely_key_lengths = [key_length for key_length, _ in factors_count.most_common() if
                           key_length <= maximum_key_length]
     return likely_key_lengths
+
+
+def _get_likely_keys(substrings: List[str], language_dictionary: Dictionary) -> List[str]:
+    """ Get likely subkeys for given substrings.
+
+    :param substrings: List of substrings extracted from current ciphered text.
+    :param language_dictionary: Language to compare its histogram with.
+    :return: List of likely keys to try.
+    """
+    likely_key_letters_bins = (find_most_likely_subkeys(substring,
+                                                        language_dictionary.letter_histogram)
+                               for substring in substrings)
+    likely_keys = _get_key_letters_combinations(likely_key_letters_bins)
+    return likely_keys
+
+
+def _get_key_letters_combinations(likely_key_letters_bins: Union[List[List[str]], Iterator[List[str]]]) -> List[str]:
+    """ Get every possible key from combinations of letter from every given bin.
+
+    :param likely_key_letters_bins: Indexed list with likely list for every position in key (i.e. likely_key_letter_bins[0]
+         is a list of likely letters to be at first position of key whereas likely_key_letter_bins[1] is a list with likely
+         letters for second position of key).
+    :return: A list with every possible key from combining letters from bins.
+    """
+    likely_keys = []
+    # I'm going to use a Mapping just to get every possible combination
+    # of characters.
+    # We don't expect keys longer than DEFAULT_CHARSET length.
+    likely_key_letters_mapping = Mapping(charset=DEFAULT_CHARSET)
+    bins_dict = {f"{DEFAULT_CHARSET[i]}": set(letter_bin) for i, letter_bin in enumerate(likely_key_letters_bins)}
+    likely_key_letters_mapping.load_content(bins_dict)
+    likely_key_letters_combinations = likely_key_letters_mapping.get_possible_mappings()
+    for combination in likely_key_letters_combinations:
+        key_letters = [value.pop() for _, value in combination.items() if len(value) > 0]
+        likely_keys.append("".join(key_letters))
+    return likely_keys
+

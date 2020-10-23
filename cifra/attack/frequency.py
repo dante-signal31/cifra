@@ -13,21 +13,6 @@ from cifra.cipher.vigenere import decipher, DEFAULT_CHARSET
 
 class LetterHistogram(object):
 
-    # def __init__(self, letters: Dict[str, int], matching_width: int = 6, charset: str = DEFAULT_CHARSET):
-    #     """ Create a LetterHistogram instance from a dict with letters as keys and occurrences for values.
-    #
-    #     :param letters: A dict with letters as keys and occurrences for values.
-    #     :param matching_width: Desired length for top and bottom matching list.
-    #     :param charset: Minimum charset expected in given text.
-    #     """
-    #     self._charset = charset
-    #     self._total_letters = sum(letters.values())
-    #     letter_counter = Counter(letters)
-    #     self._ordered_dict = self._create_ordered_dict(letter_counter)
-    #     self._top_matching_letters: List[str] = []
-    #     self._bottom_matching_letters: List[str] = []
-    #     self.set_matching_width(matching_width)
-
     def __init__(self, *, text: str = None, letters: Dict[str, int] = None, matching_width: int = 6, charset: str = DEFAULT_CHARSET):
         """ Create a LetterHistogram instance.
 
