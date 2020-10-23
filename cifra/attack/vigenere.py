@@ -140,7 +140,6 @@ def statistical_brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET,
                                                      _database_path)
     return simple_brute_force(key_generator=key_generator_function,
                               assess_function=_assess_vigenere_key,
-                              # key_space_length=key_space_length,
                               ciphered_text=ciphered_text,
                               charset=charset,
                               _database_path=_database_path)
@@ -163,22 +162,34 @@ def frequency_key_generator(ciphered_text: str,
         with Dictionary.open(language, False, _database_path) as language_dictionary:
             for key_length in likely_key_lengths:
                 substrings = get_substrings(ciphered_text, key_length)
-                # TODO: Remove list()s and leave generators.
-                likely_key_letters_bins = (find_most_likely_subkeys(substring,
-                                                                    language_dictionary.letter_histogram)
-                                           for substring in substrings)
-                # I'm going to use a Mapping just to get every possible combination
-                # of characters.
-                likely_key_letters_mapping = Mapping(charset=DEFAULT_CHARSET) # We don't expect keys longer than DEFAULT_CHARSET length.
-                bins_dict = {f"{DEFAULT_CHARSET[i]}": set(letter_bin) for i, letter_bin in enumerate(likely_key_letters_bins)}
-                likely_key_letters_mapping.load_content(bins_dict)
-                likely_key_letters_combinations = likely_key_letters_mapping.get_possible_mappings()
-                for combination in likely_key_letters_combinations:
-                    key_letters = [value.pop() for _, value in combination.items() if len(value) > 0]
-                    keys_to_try.append("".join(key_letters))
+                likely_keys = _get_likely_keys(substrings, language_dictionary)
+                keys_to_try.extend(likely_keys)
     for key in keys_to_try:
         yield key
-    # raise NotImplementedError
+
+
+def _get_likely_keys(substrings: List[str], language_dictionary: Dictionary) -> List[str]:
+    """ Get likely subkeys for given substrings.
+
+    :param substrings: List of substrings extracted from current ciphered text.
+    :param language_dictionary: Language to compare its histogram with.
+    :return: List of likely keys to try.
+    """
+    likely_keys = []
+    likely_key_letters_bins = (find_most_likely_subkeys(substring,
+                                                        language_dictionary.letter_histogram)
+                               for substring in substrings)
+    # I'm going to use a Mapping just to get every possible combination
+    # of characters.
+    likely_key_letters_mapping = Mapping(
+        charset=DEFAULT_CHARSET)  # We don't expect keys longer than DEFAULT_CHARSET length.
+    bins_dict = {f"{DEFAULT_CHARSET[i]}": set(letter_bin) for i, letter_bin in enumerate(likely_key_letters_bins)}
+    likely_key_letters_mapping.load_content(bins_dict)
+    likely_key_letters_combinations = likely_key_letters_mapping.get_possible_mappings()
+    for combination in likely_key_letters_combinations:
+        key_letters = [value.pop() for _, value in combination.items() if len(value) > 0]
+        likely_keys.append("".join(key_letters))
+    return likely_keys
 
 
 def _get_likely_key_lengths(ciphered_text: str, maximum_key_length: int) -> List[int]:
