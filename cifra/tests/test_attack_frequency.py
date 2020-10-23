@@ -18,8 +18,9 @@ def language_histogram() -> LetterHistogram:
     """
     with open("cifra/tests/resources/english_book.txt") as text_file:
         population_text = text_file.read()
-    language_histogram = LetterHistogram(population_text, matching_width=6)
+    language_histogram = LetterHistogram(text=population_text, matching_width=6)
     yield language_histogram
+
 
 @pytest.mark.quick_test
 def test_normalize_text():
@@ -45,7 +46,7 @@ def test_get_letter_frequency():
         "e": float(1)/16,
         "f": float(1)/16
     }
-    histogram = LetterHistogram(text)
+    histogram = LetterHistogram(text=text)
     # Test calculated histogram are correct.
     for letter in expected_frequencies:
         assert math.isclose(histogram.frequency(letter), expected_frequencies[letter], abs_tol=0.01)
@@ -61,7 +62,7 @@ def test_set_matching_width():
     text = "Aaaa bb, c, da-a. efg\r\nggg"
     expected_top = ["a", "g", "b"]
     expected_bottom = ["x", "y", "z"]
-    frequencies = LetterHistogram(text)
+    frequencies = LetterHistogram(text=text)
     frequencies.set_matching_width(3)
     assert frequencies.top_matching == expected_top
     assert frequencies.bottom_matching == expected_bottom
@@ -76,15 +77,9 @@ def test_match_score(language_histogram):
            "sxrjsxwjr, ia esmm lwwabj sj aqax px jia rmsuijarj aqsoaxwa. Jia " \
            "pcsusx py nhjir sr agbmlsxao sx jisr elh. -Facjclxo Ctrramm"
     expected_match_score = 5
-    text_histogram = LetterHistogram(text, matching_width=6)
+    text_histogram = LetterHistogram(text=text, matching_width=6)
     match_score = LetterHistogram.match_score(language_histogram, text_histogram)
     assert match_score == expected_match_score
-
-
-@pytest.mark.quick_test
-def test_find_repeated_sequences():
-    ciphertext = "PPQCA XQVEKG YBNKMAZU YBNGBAL JON I TSZM JYIM. VRAG VOHT VRAU C TKSG. DDWUO XITLAZU VAVV RAZ C VKB QP IWPOU"
-    
 
 
 @pytest.mark.quick_test
@@ -113,7 +108,7 @@ def test_find_repeated_sequences_many_repetitions():
 
 @pytest.mark.quick_test
 def test_get_substrings():
-    ciphertext = "abcdabcdabcdabcd"
+    ciphertext = "abc dabc dabcd abcd"
     substrings = get_substrings(ciphertext, 4)
     assert substrings[0] == "aaaa"
     assert substrings[1] == "bbbb"
@@ -123,7 +118,7 @@ def test_get_substrings():
 
 @pytest.mark.quick_test
 def test_match_substring(language_histogram):
-    substring = "OZDAZAZMYHZGZJCWZZZJHT"
+    substring = "PAEBABANZIAHAKDXAAAKIU"
     expected_result = 4
     match_result = match_substring(substring, language_histogram)
     assert match_result == expected_result
@@ -132,7 +127,7 @@ def test_match_substring(language_histogram):
 @pytest.mark.quick_test
 def test_most_likely_subkey(language_histogram):
     ciphered_substring = "PAEBABANZIAHAKDXAAAKIU"
-    expected_result = ["a", "p", "t", "w", "x"]
-    result = find_most_likely_subkeys(ciphered_substring, language_histogram, 5)
+    expected_result = ["p", "t", "w", "x"]
+    result = find_most_likely_subkeys(ciphered_substring, language_histogram)
     assert result == expected_result
 

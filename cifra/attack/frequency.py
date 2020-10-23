@@ -32,7 +32,7 @@ class LetterHistogram(object):
         """ Create a LetterHistogram instance.
 
         If letter stays as None instance is created reading a text. But it is not
-        None then histogram instance is created
+        None then histogram instance is created using a dict.
 
         :param text: Text to read.
         :param letters: A dict with letters as keys and occurrences for values.
@@ -67,14 +67,20 @@ class LetterHistogram(object):
         """
         ordered_dict_by_values = {key: value
                                   for (key, value) in letter_counter.most_common()}
+
         charset_letters_not_in_text = (letter.lower() for letter in self._charset
                                        if letter.lower() not in ordered_dict_by_values and letter.isalpha())
         for letter in charset_letters_not_in_text:
             ordered_dict_by_values.update({letter: 0})
+
         values_set = sorted(set(ordered_dict_by_values.values()), reverse=True)
         key_bins = [[key for (key, _value) in ordered_dict_by_values.items() if _value == value]
                     for value in values_set]
-        key_bins_ordered = [sorted(bin) for bin in key_bins]
+        # Book orders bins using reverse order of every char in english histogram as key.
+        # Problem is that I don't want to link text histogram to any specific language
+        # histogram because I want to develop a language agnostic algorithm.
+        # So I just order bins using default alphabetical order key.
+        key_bins_ordered = [sorted(_bin) for _bin in key_bins]
         ordered_dict_by_values_and_keys = {key: ordered_dict_by_values[key]
                                            for key in chain(*key_bins_ordered)}
         return ordered_dict_by_values_and_keys
@@ -228,9 +234,10 @@ def get_substrings(ciphertext: str, step: int) -> List[str]:
     :param step: How many letters lap before extracting next substring letter.
     :return: A list with substrings. This lists will have the same length as step parameter.
     """
+    ciphered_stream = "".join(normalize_text(ciphertext))
     substrings = []
     for i in range(step):
-        substring = ciphertext[i::step]
+        substring = ciphered_stream[i::step]
         substrings.append(substring)
     return substrings
 
@@ -245,18 +252,17 @@ def match_substring(substring: str, reference_histogram: LetterHistogram) -> int
     :param reference_histogram: Histogram to compare against.
     :return: Score value.
     """
-    substring_histogram = LetterHistogram(substring)
+    substring_histogram = LetterHistogram(text=substring)
     match_result = LetterHistogram.match_score(substring_histogram, reference_histogram)
     return match_result
 
 
-def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogram, amount: int = 5) -> List[str]:
+def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogram) -> List[str]:
     """ Get the most likely letters used to get given ciphered substring in the context of
     given language histogram.
 
     :param substring: Ciphered substring.
     :param reference_histogram: Histogram to compare against.
-    :param amount: How many likely subkeys to estimate.
     :return: A list of letters as most likely candidates to be the key for given ciphered substring.
     """
     scores: Dict[str, int] = dict()
@@ -266,5 +272,6 @@ def find_most_likely_subkeys(substring: str, reference_histogram: LetterHistogra
         score = LetterHistogram.match_score(deciphered_histogram, reference_histogram)
         scores[letter] = score
     scores_counter = Counter(scores)
-    most_likely_subkeys = sorted([key for key, value in scores_counter.most_common(amount)])
+    _, maximum_count = scores_counter.most_common(1)[0]
+    most_likely_subkeys = sorted([key for key, value in scores_counter.items() if value == maximum_count])
     return most_likely_subkeys

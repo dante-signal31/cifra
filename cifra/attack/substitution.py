@@ -297,6 +297,9 @@ class Mapping(object):
     def __eq__(self, other):
         return self.get_current_content() == other.get_current_content()
 
+    def items(self):
+        return self._mapping.items()
+
     def load_content(self, mapping_dict: Dict[str, Set[str]]) -> None:
         """ Populates this mapping using a dict.
 

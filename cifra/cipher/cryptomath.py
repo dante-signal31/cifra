@@ -1,6 +1,8 @@
 # Cryptomath Module
 # https://www.nostarch.com/crackingcodes/ (BSD Licensed)
-from typing import Optional, List, Set
+import collections
+from itertools import chain
+from typing import Optional, List, Set, Dict, Counter
 
 
 def gcd(a: int, b: int) -> int:
@@ -52,12 +54,11 @@ def find_factors(number: int) -> List[int]:
     return factors
 
 
-def find_common_factors(*factor_lists: List[int]) -> Set[int]:
-    """ Get a sequence of lists of factors and return factors common for them all.
+def count_factors(*factor_lists: List[int]) -> Counter[int]:
+    """ Get a sequence of lists of factors and return a counter of how many factors there are.
 
     :param factor_lists: A variable length sequence of list. Every list has factors for a number:
-    :return: A set with common factors
+    :return: A counter of factors
     """
-    common_factors = set(factor_lists[0])
-    common_factors.intersection_update(*(set(factors) for factors in factor_lists))
-    return common_factors
+    factors = collections.Counter(chain(*factor_lists))
+    return factors

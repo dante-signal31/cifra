@@ -8,14 +8,16 @@ message was in a language you don't have a dictionary for, then correct key
 won't be detected.
 """
 from itertools import chain, permutations
-from typing import Optional, Iterator
+from typing import Optional, Iterator, List, Set
 from cifra.attack.simple_attacks import _assess_key
 from cifra.attack.simple_attacks import _brute_force as simple_brute_force
 from cifra.attack.simple_attacks import _brute_force_mp as simple_brute_force_mp
 from cifra.attack.simple_attacks import _dictionary_word_key_generator as dictionary_word_key_generator
 from cifra.attack.dictionaries import IdentifiedLanguage, Dictionary
+from cifra.attack.frequency import get_substrings, find_most_likely_subkeys, find_repeated_sequences
+from cifra.attack.substitution import Mapping
+from cifra.cipher.cryptomath import find_factors, count_factors
 from cifra.cipher.vigenere import DEFAULT_CHARSET, decipher
-from cifra.attack.frequency import get_substrings, find_most_likely_subkeys
 from cifra.tests.test_simple_attacks import mocked_dictionary_word_key_generator
 
 
@@ -155,18 +157,40 @@ def frequency_key_generator(ciphered_text: str,
         set this parameter, but it is useful for tests.
     :return: An iterator through most likely keys below given length.
     """
-    # TODO: Pending unit test for this function.
+    likely_key_lengths = _get_likely_key_lengths(ciphered_text, maximum_key_length)
+    keys_to_try: List[str] = []
     for language in Dictionary.get_available_languages(_database_path):
         with Dictionary.open(language, False, _database_path) as language_dictionary:
-            for key_length in range(1, maximum_key_length):
+            for key_length in likely_key_lengths:
                 substrings = get_substrings(ciphered_text, key_length)
                 # TODO: Remove list()s and leave generators.
-                likely_keys = list(chain(*(find_most_likely_subkeys(substring,
-                                                                    language_dictionary.letter_histogram,
-                                                                    amount=4)
-                                    for substring in substrings)))
-                passwords_to_try = list(permutations(likely_keys, key_length))
-                for password_chars in passwords_to_try:
-                    password = "".join(password_chars)
-                    yield password
+                likely_key_letters_bins = (find_most_likely_subkeys(substring,
+                                                                    language_dictionary.letter_histogram)
+                                           for substring in substrings)
+                # I'm going to use a Mapping just to get every possible combination
+                # of characters.
+                likely_key_letters_mapping = Mapping(charset=DEFAULT_CHARSET) # We don't expect keys longer than DEFAULT_CHARSET length.
+                bins_dict = {f"{DEFAULT_CHARSET[i]}": set(letter_bin) for i, letter_bin in enumerate(likely_key_letters_bins)}
+                likely_key_letters_mapping.load_content(bins_dict)
+                likely_key_letters_combinations = likely_key_letters_mapping.get_possible_mappings()
+                for combination in likely_key_letters_combinations:
+                    key_letters = [value.pop() for _, value in combination.items() if len(value) > 0]
+                    keys_to_try.append("".join(key_letters))
+    for key in keys_to_try:
+        yield key
     # raise NotImplementedError
+
+
+def _get_likely_key_lengths(ciphered_text: str, maximum_key_length: int) -> List[int]:
+    """ Get most likely key lengths using Kasiski examination.
+
+    :param ciphered_text: Text to be decrypted.
+    :param maximum_key_length: We are not interested in keys longer than this limit.
+    :return: A list with most likely lengths shorter than maximum_key_length.
+    """
+    sequences = find_repeated_sequences(ciphered_text)
+    factors = (find_factors(separation) for separation_list in sequences.values() for separation in separation_list)
+    factors_count = count_factors(*factors)
+    likely_key_lengths = [key_length for key_length, _ in factors_count.most_common() if
+                          key_length <= maximum_key_length]
+    return likely_key_lengths
