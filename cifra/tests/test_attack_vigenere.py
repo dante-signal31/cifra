@@ -46,8 +46,7 @@ def _assert_found_key(found_key):
 
 
 @pytest.mark.slow_test
-def test_statistical_brute_force_vigenere(loaded_dictionaries: LoadedDictionaries,
-                                          vigenere_ciphered_english_book: str):
+def test_statistical_brute_force_vigenere(loaded_dictionaries: LoadedDictionaries):
     ciphered_text = "PPQCA XQVEKG YBNKMAZU YBNGBAL JON I TSZM JYIM. VRAG VOHT VRAU C TKSG. DDWUO XITLAZU VAVV RAZ C VKB QP IWPOU"
     test_key = "wick"
     elapsed_time = []
@@ -56,6 +55,7 @@ def test_statistical_brute_force_vigenere(loaded_dictionaries: LoadedDictionarie
                                             maximum_key_length=4)
         assert found_key == test_key
     print(f"\n\nElapsed time with test_brute_force_vigenere_mp: {elapsed_time[0]} seconds.")
+
 
 @pytest.mark.quick_test
 def test_get_likely_key_lengths():
