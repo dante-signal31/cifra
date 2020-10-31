@@ -2,7 +2,8 @@
 import pytest
 from test_common.benchmark.timing import timeit
 
-from cifra.attack.vigenere import brute_force, brute_force_mp, statistical_brute_force, _get_likely_key_lengths
+from cifra.attack.vigenere import brute_force, brute_force_mp, statistical_brute_force, statistical_brute_force_mp, \
+    _get_likely_key_lengths
 from cifra.cipher.vigenere import decipher, cipher
 from cifra.tests.test_dictionaries import loaded_dictionaries, LoadedDictionaries
 
@@ -52,6 +53,18 @@ def test_statistical_brute_force_vigenere(loaded_dictionaries: LoadedDictionarie
     elapsed_time = []
     with timeit(elapsed_time):
         found_key = statistical_brute_force(ciphered_text, _database_path=loaded_dictionaries.temp_dir,
+                                            maximum_key_length=4)
+        assert found_key == test_key
+    print(f"\n\nElapsed time with test_brute_force_vigenere_mp: {elapsed_time[0]} seconds.")
+
+
+@pytest.mark.slow_test
+def test_statistical_brute_force_vigenere_mp(loaded_dictionaries: LoadedDictionaries):
+    ciphered_text = "PPQCA XQVEKG YBNKMAZU YBNGBAL JON I TSZM JYIM. VRAG VOHT VRAU C TKSG. DDWUO XITLAZU VAVV RAZ C VKB QP IWPOU"
+    test_key = "wick"
+    elapsed_time = []
+    with timeit(elapsed_time):
+        found_key = statistical_brute_force_mp(ciphered_text, _database_path=loaded_dictionaries.temp_dir,
                                             maximum_key_length=4)
         assert found_key == test_key
     print(f"\n\nElapsed time with test_brute_force_vigenere_mp: {elapsed_time[0]} seconds.")

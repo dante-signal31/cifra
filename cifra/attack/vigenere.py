@@ -117,8 +117,7 @@ def statistical_brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     Uses a statistical brute force technique (Kasiski analysis) trying the most
     likely keys until finding a text that can be identified with any of our languages.
 
-    **You should not use this function. Use *brute_force_mp* instead.** This
-
+    **You should not use this function. Use *statistical_brute_force_mp* instead.** This
     function is slower than *mp* one because is sequential while the other uses a
     multiprocessing approach. This function only stay here to allow comparisons
     between sequential and multiprocessing approaches.
@@ -139,6 +138,43 @@ def statistical_brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET,
                                                      maximum_key_length,
                                                      _database_path)
     return simple_brute_force(key_generator=key_generator_function,
+                              assess_function=_assess_vigenere_key,
+                              ciphered_text=ciphered_text,
+                              charset=charset,
+                              _database_path=_database_path)
+
+
+def statistical_brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
+                               maximum_key_length: int = 5,
+                               _database_path: Optional[str] = None,
+                               # _testing=False
+                               ) -> str:
+    """ Get Vigenere ciphered text key.
+
+    Uses a brute force technique trying the entire dictionary space until finding a text
+    that can be identified with any of our languages.
+
+    **You should use this function instead of *brute_force*.**
+
+    Whereas *brute_force* uses a sequential approach, this function uses
+    multiprocessing to improve performance.
+
+    :param ciphered_text: Text to be deciphered.
+    :param charset: Charset used for Caesar method substitution. Both ends, ciphering
+        and deciphering, should use the same charset or original text won't be properly
+        recovered.
+    :param _database_path: Absolute pathname to database file. Usually you don't
+        set this parameter, but it is useful for tests.
+    :param _testing: Vigenere takes to long time to be tested against real dictionaries. So,
+        to keep tests short if _testing is set to True a mocked key generator is used so only
+        a controlled handful of words are tested to find a valid key. In simple terms: don't
+        mess with this parameter and keep it to False, it is only used for testing.
+    :return: Most probable Vigenere key found.
+    """
+    key_generator_function = frequency_key_generator(ciphered_text,
+                                                     maximum_key_length,
+                                                     _database_path)
+    return simple_brute_force_mp(key_generator=key_generator_function,
                               assess_function=_assess_vigenere_key,
                               ciphered_text=ciphered_text,
                               charset=charset,
