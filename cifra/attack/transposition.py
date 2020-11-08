@@ -52,17 +52,18 @@ def brute_force_mp(ciphered_text: str, _database_path: Optional[str] = None) -> 
      set this parameter, but it is useful for tests.
     :return: Transposition key found.
     """
+    # TODO: Something wrong here. This function takes longer than single process one.
     key_space_length = len(ciphered_text)
     return simple_brute_force_mp(key_generator=_integer_key_generator(key_space_length),
-                                 assess_function=_analize_text,
+                                 assess_function=_assess_transposition_key,
                                  key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  _database_path=_database_path)
 
 
-def _analize_text(nargs):
-    ciphered_text, key, _database_path = nargs
-    return _assess_transposition_key(ciphered_text, key, _database_path)
+# def _analize_text(nargs):
+#     ciphered_text, key, _database_path = nargs
+#     return _assess_transposition_key(ciphered_text, key, _database_path)
 
 
 def _assess_transposition_key(ciphered_text: str, key: int,

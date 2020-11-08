@@ -68,6 +68,7 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
      set this parameter, but it is useful for tests.
     :return: Caesar key found.
     """
+    # TODO: Something wrong here. This function takes longer than single process one.
     key_space_length = len(charset)
     return simple_brute_force_mp(key_generator=integer_key_generator(key_space_length),
                                  assess_function=_assess_caesar_key,
