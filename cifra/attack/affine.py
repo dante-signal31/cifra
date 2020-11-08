@@ -68,16 +68,16 @@ def brute_force_mp(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     """
     key_space_length = len(charset) ** 2
     return simple_brute_force_mp(key_generator=_integer_key_generator(key_space_length),
-                                 assess_function=_analize_text,
-                                 key_space_length=key_space_length,
+                                 assess_function=_assess_affine_key,
+                                 # key_space_length=key_space_length,
                                  ciphered_text=ciphered_text,
                                  charset=charset,
                                  _database_path=_database_path)
 
 
-def _analize_text(nargs):
-    ciphered_text, key, charset, _database_path = nargs
-    return _assess_affine_key(ciphered_text, key, charset, _database_path)
+# def _analize_text(nargs):
+#     ciphered_text, key, charset, _database_path = nargs
+#     return _assess_affine_key(ciphered_text, key, charset, _database_path)
 
 
 def _assess_affine_key(ciphered_text: str, key: int, charset: str,

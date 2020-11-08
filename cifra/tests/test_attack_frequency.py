@@ -5,6 +5,7 @@ import math
 
 import pytest
 
+# TODO: Change import for normalize_text() to point to cipher.common module.
 from cifra.attack.frequency import LetterHistogram, normalize_text, \
     find_repeated_sequences, get_substrings, match_substring, find_most_likely_subkeys
 from cifra.tests.test_dictionaries import ENGLISH_TEXT_WITH_PUNCTUATIONS_MARKS
