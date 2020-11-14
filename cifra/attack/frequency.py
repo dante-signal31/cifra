@@ -167,6 +167,8 @@ def _find_adjacent_separations(text: str, length: int) -> Dict[str, List[int]]:
     char_string_length = len(text)
     sequences = dict()
     for i, char in enumerate(char_string):
+        if (i + length) > char_string_length:
+            break
         sequence_to_find = char_string[i:i + length]
         if sequence_to_find not in sequences:
             index = i + length
