@@ -32,7 +32,7 @@ def brute_force(ciphered_text: str, charset: str = DEFAULT_CHARSET,
     multiprocessing approach. This function only stay here to allow comparisons
     between sequential and multiprocessing approaches.
     :param ciphered_text: Text to be deciphered.
-    :param charset: Charset used for Caesar method substitution. Both ends, ciphering
+    :param charset: Charset used for Vigenere method substitution. Both ends, ciphering
         and deciphering, should use the same charset or original text won't be properly
         recovered.
     :param _database_path: Absolute pathname to database file. Usually you don't

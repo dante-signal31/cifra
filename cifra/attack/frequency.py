@@ -79,6 +79,7 @@ class LetterHistogram(object):
         Frequency is the possibility of occurrence of given letter inside a normal text.
         Its value goes from 0 to 1.
 
+        :param key: Letter to look its frequency for.
         :return: Probability of occurrence of given letter.
         """
         return float(self._ordered_dict[key])/self._total_letters
