@@ -315,3 +315,11 @@ def test_get_letter_histogram_from_text_file():
     assert language_histogram["t"] == 26406
     assert language_histogram["a"] == 24684
     assert language_histogram["o"] == 22983
+
+
+@pytest.mark.quick_test
+def test_get_all_words(loaded_dictionary_temp_dir):
+    expected_words = ["yes", "no", "dog", "cat", "snake"]
+    with Dictionary.open("english", False, _database_path=loaded_dictionary_temp_dir) as dictionary:
+        returned_words = dictionary.get_all_words()
+    assert set(returned_words) == set(expected_words)
