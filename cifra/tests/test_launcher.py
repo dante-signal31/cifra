@@ -7,7 +7,7 @@ import cifra.cifra_launcher as cifra_launcher
 from typing import Dict
 
 def _assert_dict_key(key: str, value: str, _dict: Dict[str, str]):
-    assert key in _dict.keys()
+    assert key in _dict
     assert _dict[key] == value
 
 

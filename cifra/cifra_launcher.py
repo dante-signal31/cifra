@@ -14,9 +14,17 @@
 import argparse
 import os
 import sys
+import tempfile
 from typing import List, Dict
 
 import cifra.cipher.common
+from cifra.attack.dictionaries import Dictionary
+
+if os.getenv("CIFRA_DEBUG", 0) == "1":
+    # TODO: Check Travis CI sets it corresponding CIFRA_DEBUG env var to 1.
+    DICTIONARY_FOLDER = tempfile.mkdtemp()
+else:
+    DICTIONARY_FOLDER = "~/.cifra/"
 
 CIPHERING_ALGORITHMS = ["caesar", "substitution", "transposition", "affine",
                         "vigenere"]
@@ -154,7 +162,20 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
 
 
 def main(args: List[str] = sys.argv[1:]) -> None:
-    arguments = parse_arguments(args)
+    arguments: Dict[str, str] = parse_arguments(args)
+    if arguments["mode"] == "dictionary":
+        if arguments["action"] == "create":
+            initial_words_file = arguments.get("initial_words_file", None)
+            with Dictionary.open(arguments["dictionary_name"], create=True, _database_path=DICTIONARY_FOLDER) as dictionary:
+                if initial_words_file is not None:
+                    dictionary.populate(initial_words_file)
+        if arguments["action"] == "delete":
+            Dictionary.remove_dictionary(arguments["dictionary_name"], _database_path=DICTIONARY_FOLDER)
+        if arguments["action"] == "update":
+            with Dictionary.open(arguments["dictionary_name"], create=False, _database_path=DICTIONARY_FOLDER) as dictionary:
+                dictionary.populate(arguments["words_file"])
+
+
 
 
 if __name__ == '__main__':
