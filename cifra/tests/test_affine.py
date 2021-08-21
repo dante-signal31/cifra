@@ -3,7 +3,7 @@ Tests for cipher.affine module.
 """
 import string
 import pytest
-import cipher.affine as affine
+import cifra.cipher.affine as affine
 from test_common._random.strings import random_string
 
 ORIGINAL_MESSAGE = "A computer would deserve to be called intelligent if it could deceive a human into believing that it was human.\" Alan Turing"
