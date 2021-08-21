@@ -59,31 +59,26 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
     #   DICTIONARY CREATION.
     dictionary_create_parser = dictionary_actions_subparser.add_parser(name="create")
     dictionary_create_parser.add_argument("dictionary_name",
-                                          required=True,
                                           type=str,
                                           help="Name for the dictionary to create.",
                                           metavar="NEW_DICTIONARY_NAME")
     dictionary_create_parser.add_argument("-i", "--initial_words_file",
-                                          required=False,
                                           type=_check_is_file,
                                           help="Optionally you can load in the dictionary words located in a file",
                                           metavar="PATH_TO FILE_WITH_WORDS")
     #   DICTIONARY REMOVAL.
     dictionary_delete_parser = dictionary_actions_subparser.add_parser(name="delete")
     dictionary_delete_parser.add_argument("dictionary_name",
-                                          required=True,
                                           type=str,
                                           help="Name for the dictionary to delete.",
                                           metavar="DICTIONARY_NAME_TO_DELETE")
     #   DICTIONARY UPDATING.
     dictionary_update_parser = dictionary_actions_subparser.add_parser(name="update")
     dictionary_update_parser.add_argument("dictionary_name",
-                                          required=True,
                                           type=str,
                                           help="Name for the dictionary to update with additional words.",
                                           metavar="DICTIONARY_NAME_TO_UPDATE")
-    dictionary_create_parser.add_argument("words_file",
-                                          required=True,
+    dictionary_update_parser.add_argument("words_file",
                                           type=_check_is_file,
                                           help="Pathname to a file with words to add to dictionary",
                                           metavar="PATH_TO FILE_WITH_WORDS")
@@ -91,24 +86,20 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
     cipher_parser = cifra_subparsers.add_parser(name="cipher",
                                                 help="Cipher a text using a key.")
     cipher_parser.add_argument("algorithm",
-                               required=True,
                                choices=CIPHERING_ALGORITHMS,
                                type=str,
                                help="Algorithm to use to cipher.",
                                metavar="ALGORITHM_NAME")
     cipher_parser.add_argument("key",
-                               required=True,
                                type=str,
                                help="Key to use to cipher.",
                                metavar="CIPHERING_KEY")
     cipher_parser.add_argument("file_to_cipher",
-                               required=True,
                                type=_check_is_file,
                                help="Path to file with text to cipher.",
                                metavar="FILE_TO_CIPHER")
     cipher_parser.add_argument("-o", "--ciphered_file",
-                               required=False,
-                               type=_check_is_file,
+                               type=str,
                                help="Path to output file to place ciphered text. If not used "
                                     "ciphered text will be dumped to console.",
                                metavar="OUTPUT_CIPHERED_FILE")
@@ -116,24 +107,20 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
     decipher_parser = cifra_subparsers.add_parser(name="decipher",
                                                   help="Decipher a text using a key.")
     decipher_parser.add_argument("algorithm",
-                                 required=True,
                                  choices=CIPHERING_ALGORITHMS,
                                  type=str,
                                  help="Algorithm to use to decipher.",
                                  metavar="ALGORITHM_NAME")
     decipher_parser.add_argument("key",
-                                 required=True,
                                  type=str,
                                  help="Key to use to decipher.",
                                  metavar="CIPHERING_KEY")
     decipher_parser.add_argument("file_to_decipher",
-                                 required=True,
                                  type=_check_is_file,
                                  help="Path to file with text to decipher.",
                                  metavar="FILE_TO_DECIPHER")
     decipher_parser.add_argument("-o", "--deciphered_file",
-                                 required=False,
-                                 type=_check_is_file,
+                                 type=str,
                                  help="Path to output file to place deciphered text. If not used "
                                       "deciphered text will be dumped to console.",
                                  metavar="OUTPUT_DECIPHERED_FILE")
@@ -141,36 +128,32 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
     attack_parser = cifra_subparsers.add_parser(name="attack",
                                                 help="Attack a ciphered text to get its key.")
     attack_parser.add_argument("algorithm",
-                               required=True,
                                choices=CIPHERING_ALGORITHMS,
                                type=str,
                                help="Algorithm to attack.",
                                metavar="ALGORITHM_NAME")
     attack_parser.add_argument("file_to_attack",
-                               required=True,
                                type=_check_is_file,
                                help="Path to file with text to attack.",
                                metavar="FILE_TO_ATTACK")
     attack_parser.add_argument("-o", "--deciphered_file",
-                               required=False,
-                               type=_check_is_file,
+                               type=str,
                                help="Path to output file to place deciphered text. If not used "
                                     "deciphered text will be dumped to console.",
                                metavar="OUTPUT_DECIPHERED_FILE")
     attack_parser.add_argument("-c", "--charset",
-                               required=False,
                                type=str,
                                help=f"Default charset is: {cifra.cipher.common.DEFAULT_CHARSET}, but you can set here "
                                     f"another.",
                                metavar="CHARSET")
 
-    parsed_arguments = vars(arg_parser.parse_args())
+    parsed_arguments = vars(arg_parser.parse_args(args))
     filtered_parser_arguments = {key: value for key, value in parsed_arguments.items()
                                  if value is not None}
     return filtered_parser_arguments
 
 
-def main(args: List) -> None:
+def main(args: List[str] = sys.argv[1:]) -> None:
     arguments = parse_arguments(args)
 
 
