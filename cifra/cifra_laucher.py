@@ -63,7 +63,7 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
                                           type=str,
                                           help="Name for the dictionary to create.",
                                           metavar="NEW_DICTIONARY_NAME")
-    dictionary_create_parser.add_argument("initial_words_file",
+    dictionary_create_parser.add_argument("-i", "--initial_words_file",
                                           required=False,
                                           type=_check_is_file,
                                           help="Optionally you can load in the dictionary words located in a file",
@@ -106,7 +106,7 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
                                type=_check_is_file,
                                help="Path to file with text to cipher.",
                                metavar="FILE_TO_CIPHER")
-    cipher_parser.add_argument("ciphered_file",
+    cipher_parser.add_argument("-o", "--ciphered_file",
                                required=False,
                                type=_check_is_file,
                                help="Path to output file to place ciphered text. If not used "
@@ -131,7 +131,7 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
                                  type=_check_is_file,
                                  help="Path to file with text to decipher.",
                                  metavar="FILE_TO_DECIPHER")
-    decipher_parser.add_argument("deciphered_file",
+    decipher_parser.add_argument("-o", "--deciphered_file",
                                  required=False,
                                  type=_check_is_file,
                                  help="Path to output file to place deciphered text. If not used "
@@ -151,13 +151,13 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
                                type=_check_is_file,
                                help="Path to file with text to attack.",
                                metavar="FILE_TO_ATTACK")
-    attack_parser.add_argument("deciphered_file",
+    attack_parser.add_argument("-o", "--deciphered_file",
                                required=False,
                                type=_check_is_file,
                                help="Path to output file to place deciphered text. If not used "
                                     "deciphered text will be dumped to console.",
                                metavar="OUTPUT_DECIPHERED_FILE")
-    attack_parser.add_argument("charset",
+    attack_parser.add_argument("-c", "--charset",
                                required=False,
                                type=str,
                                help=f"Default charset is: {cifra.cipher.common.DEFAULT_CHARSET}, but you can set here "
@@ -172,8 +172,6 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
 
 def main(args: List) -> None:
     arguments = parse_arguments(args)
-
-
 
 
 if __name__ == '__main__':
