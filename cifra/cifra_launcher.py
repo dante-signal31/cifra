@@ -90,6 +90,8 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
                                           type=_check_is_file,
                                           help="Pathname to a file with words to add to dictionary",
                                           metavar="PATH_TO FILE_WITH_WORDS")
+    #   DICTIONARY LISTING.
+    _ = dictionary_actions_subparser.add_parser(name="list")
     # CIPHER MANAGEMENT.
     cipher_parser = cifra_subparsers.add_parser(name="cipher",
                                                 help="Cipher a text using a key.")

@@ -6,6 +6,7 @@ import cifra.cifra_launcher as cifra_launcher
 
 from typing import Dict
 
+
 def _assert_dict_key(key: str, value: str, _dict: Dict[str, str]):
     assert key in _dict
     assert _dict[key] == value
@@ -156,3 +157,11 @@ def test_launcher_attack_caesar_with_charset():
         _assert("deciphered_file", "recovered_message.txt")
         _assert("charset", "abcdefghijklmnñopqrstuvwxyz")
 
+
+@pytest.mark.quick_test
+def test_launcher_list_dictionaries():
+    provided_args = "dictionary list".split()
+    parsed_arguments: Dict[str, str] = cifra_launcher.parse_arguments(provided_args)
+    def _assert(key, value): return _assert_dict_key(key, value, parsed_arguments)
+    _assert("mode", "dictionary")
+    _assert("action", "list")
