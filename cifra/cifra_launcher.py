@@ -237,43 +237,16 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
     return filtered_parser_arguments
 
 
-def main(args=sys.argv[1:], database_path=None) -> None:
-    arguments: Dict[str, str] = parse_arguments(args)
+def _attack_file(input_filepath: str, algorithm: Algorithm, charset: str = None) -> str:
+    """ Apply crypto attack to file to get most likely plain text.
 
-    # DICTIONARY MANAGEMENT
-    if arguments["mode"] == "dictionary":
-        if arguments["action"] == "create":
-            initial_words_file = arguments.get("initial_words_file", None)
-            with Dictionary.open(arguments["dictionary_name"], create=True, _database_path=database_path) as dictionary:
-                if initial_words_file is not None:
-                    dictionary.populate(initial_words_file)
-        elif arguments["action"] == "delete":
-            Dictionary.remove_dictionary(arguments["dictionary_name"], _database_path=database_path)
-        elif arguments["action"] == "update":
-            with Dictionary.open(arguments["dictionary_name"], create=False, _database_path=database_path) as dictionary:
-                dictionary.populate(arguments["words_file"])
-        elif arguments["action"] == "list":
-            dictionaries = Dictionary.get_available_languages(_database_path=database_path)
-            for dictionary in dictionaries:
-                print(dictionary)
-
-    # CIPHERING MANAGEMENT
-    elif arguments["mode"] == "cipher":
-        ciphered_content = _process_file_with_key(arguments["file_to_cipher"],
-                                                  Algorithm.from_string(arguments["algorithm"]),
-                                                  arguments["key"],
-                                                  MessageOperation.from_string(arguments["mode"]),
-                                                  arguments["charset"] if "charset" in arguments else None)
-        _output_result(ciphered_content, arguments)
-
-    # DECIPHERING MANAGEMENT
-    elif arguments["mode"] == "decipher":
-        deciphered_content = _process_file_with_key(arguments["file_to_decipher"],
-                                                  Algorithm.from_string(arguments["algorithm"]),
-                                                  arguments["key"],
-                                                  MessageOperation.from_string(arguments["mode"]),
-                                                  arguments["charset"] if "charset" in arguments else None)
-        _output_result(deciphered_content, arguments)
+    :param input_filepath: Pathname of ciphered text file.
+    :param algorithm: Algorithm to attack.
+    :param charset: Charset to use with given algorithm. If selected algorithm does not use a charset
+    then this is ignored.
+    :return: Most likely original plain text.
+    """
+    raise NotImplementedError()
 
 
 def _output_result(result: str, arguments: Dict[str, str]) -> None:
@@ -283,10 +256,11 @@ def _output_result(result: str, arguments: Dict[str, str]) -> None:
     written to that file or to screen otherwise.
     :param arguments: Console parsed arguments.
     """
-    if ("ciphered_file" or "deciphered_file") in arguments:
+    if ("ciphered_file" in arguments) or ("deciphered_file" in arguments):
         output_filename = arguments["ciphered_file"] if "ciphered_file" in arguments else arguments["deciphered_file"]
         with open(output_filename, mode="w") as output_file:
             output_file.write(result)
+            output_file.flush()
     else:
         print(result)
 
@@ -315,7 +289,7 @@ def _process_file_with_key(_input: str, algorithm: Algorithm, key: str,
                                              charset)
     else:
         processed_content = process_function(content_to_process,
-                                             key)
+                                             process_key)
     return processed_content
 
 
@@ -359,6 +333,52 @@ def _get_deciphering_function(algorithm: Algorithm) -> Callable:
     elif algorithm == Algorithm.vigenere:
         deciphering_function = cifra.cipher.vigenere.decipher
     return deciphering_function
+
+
+def main(args=sys.argv[1:], database_path=None) -> None:
+    arguments: Dict[str, str] = parse_arguments(args)
+
+    # DICTIONARY MANAGEMENT
+    if arguments["mode"] == "dictionary":
+        if arguments["action"] == "create":
+            initial_words_file = arguments.get("initial_words_file", None)
+            with Dictionary.open(arguments["dictionary_name"], create=True, _database_path=database_path) as dictionary:
+                if initial_words_file is not None:
+                    dictionary.populate(initial_words_file)
+        elif arguments["action"] == "delete":
+            Dictionary.remove_dictionary(arguments["dictionary_name"], _database_path=database_path)
+        elif arguments["action"] == "update":
+            with Dictionary.open(arguments["dictionary_name"], create=False, _database_path=database_path) as dictionary:
+                dictionary.populate(arguments["words_file"])
+        elif arguments["action"] == "list":
+            dictionaries = Dictionary.get_available_languages(_database_path=database_path)
+            for dictionary in dictionaries:
+                print(dictionary)
+
+    # CIPHERING MANAGEMENT
+    elif arguments["mode"] == "cipher":
+        ciphered_content = _process_file_with_key(arguments["file_to_cipher"],
+                                                  Algorithm.from_string(arguments["algorithm"]),
+                                                  arguments["key"],
+                                                  MessageOperation.from_string(arguments["mode"]),
+                                                  arguments["charset"] if "charset" in arguments else None)
+        _output_result(ciphered_content, arguments)
+
+    # DECIPHERING MANAGEMENT
+    elif arguments["mode"] == "decipher":
+        deciphered_content = _process_file_with_key(arguments["file_to_decipher"],
+                                                  Algorithm.from_string(arguments["algorithm"]),
+                                                  arguments["key"],
+                                                  MessageOperation.from_string(arguments["mode"]),
+                                                  arguments["charset"] if "charset" in arguments else None)
+        _output_result(deciphered_content, arguments)
+
+    # ATTACK MANAGEMENT
+    elif arguments["mode"] == "attack":
+        recovered_content = _attack_file(arguments["file_to_attack"],
+                                         Algorithm.from_string(arguments["algorithm"]),
+                                         arguments["charset"] if "charset" in arguments else None)
+        _output_result(recovered_content, arguments)
 
 
 if __name__ == '__main__':
