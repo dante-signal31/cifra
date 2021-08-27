@@ -18,14 +18,19 @@ import sys
 from typing import List, Dict, Callable, Optional
 from enum import Enum, auto
 
-
 import cifra.cipher.affine
 import cifra.cipher.caesar
 import cifra.cipher.common
 import cifra.cipher.substitution
 import cifra.cipher.transposition
 import cifra.cipher.vigenere
+import cifra.attack.affine
+import cifra.attack.caesar
+import cifra.attack.substitution
+import cifra.attack.transposition
+import cifra.attack.vigenere
 from cifra.attack.dictionaries import Dictionary
+
 
 # if os.getenv("CIFRA_DEBUG", 0) == "1":
 #     # TODO: Check Travis CI sets it corresponding CIFRA_DEBUG env var to 1.
@@ -89,8 +94,6 @@ CIPHERING_ALGORITHMS = {key for key in Algorithm.__members__.keys()}
 STRING_KEY_ALGORITHMS = {"substitution", "vigenere"}
 
 INTEGER_KEY_ALGORITHMS = CIPHERING_ALGORITHMS - STRING_KEY_ALGORITHMS
-
-
 
 
 def _check_is_file(_string: str) -> str:
@@ -204,10 +207,10 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
                                       "deciphered text will be dumped to console.",
                                  metavar="OUTPUT_DECIPHERED_FILE")
     decipher_parser.add_argument("-c", "--charset",
-                               type=str,
-                               help=f"Default charset is: {cifra.cipher.common.DEFAULT_CHARSET}, but you can set here "
-                                    f"another.",
-                               metavar="CHARSET")
+                                 type=str,
+                                 help=f"Default charset is: {cifra.cipher.common.DEFAULT_CHARSET}, but you can set here "
+                                      f"another.",
+                                 metavar="CHARSET")
     # ATTACK MANAGEMENT
     attack_parser = cifra_subparsers.add_parser(name="attack",
                                                 help="Attack a ciphered text to get its key.")
@@ -235,18 +238,6 @@ def parse_arguments(args: list = None) -> Dict[str, str]:
     filtered_parser_arguments = {key: value for key, value in parsed_arguments.items()
                                  if value is not None}
     return filtered_parser_arguments
-
-
-def _attack_file(input_filepath: str, algorithm: Algorithm, charset: str = None) -> str:
-    """ Apply crypto attack to file to get most likely plain text.
-
-    :param input_filepath: Pathname of ciphered text file.
-    :param algorithm: Algorithm to attack.
-    :param charset: Charset to use with given algorithm. If selected algorithm does not use a charset
-    then this is ignored.
-    :return: Most likely original plain text.
-    """
-    raise NotImplementedError()
 
 
 def _output_result(result: str, arguments: Dict[str, str]) -> None:
@@ -293,6 +284,34 @@ def _process_file_with_key(_input: str, algorithm: Algorithm, key: str,
     return processed_content
 
 
+def _attack_file(input_filepath: str, algorithm: Algorithm, charset: str = None, _database_path=None) -> str:
+    """ Apply crypto attack to file to get most likely plain text.
+
+    :param input_filepath: Pathname of ciphered text file.
+    :param algorithm: Algorithm to attack.
+    :param charset: Charset to use with given algorithm. If selected algorithm does not use a charset
+    then this is ignored.
+    :param _database_path: Absolute pathname to database file. Usually you don't set this parameter,
+    but it is useful for tests.
+    :return: Most likely original plain text.
+    """
+    with open(input_filepath, mode="r") as input_file:
+        ciphered_content = input_file.read()
+    attack_function = _get_attack_function(algorithm)
+    if algorithm == Algorithm.substitution:
+        (key, _) = attack_function(ciphered_content, charset, _database_path=_database_path) \
+            if charset is not None else \
+            attack_function(ciphered_content, _database_path=_database_path)
+    else:
+        key = attack_function(ciphered_content, charset) if charset is not None else attack_function(ciphered_content,
+                                                                                                     _database_path=_database_path)
+
+    deciphered_text = _process_file_with_key(input_filepath, algorithm, key, MessageOperation.decipher, charset) \
+        if charset is not None else \
+        _process_file_with_key(input_filepath, algorithm, key, MessageOperation.decipher, charset)
+    return deciphered_text
+
+
 def _get_ciphering_function(algorithm: Algorithm) -> Callable:
     """ Get ciphering function for this algorithm.
 
@@ -335,23 +354,45 @@ def _get_deciphering_function(algorithm: Algorithm) -> Callable:
     return deciphering_function
 
 
-def main(args=sys.argv[1:], database_path=None) -> None:
+def _get_attack_function(algorithm: Algorithm) -> Callable:
+    """ Get attack function for this algorithm.
+
+    :param algorithm: Algorithm name.
+    :return: A ciphering function. None if function with that
+    name was not found.
+    """
+    attack_function = None
+    if algorithm == Algorithm.caesar:
+        attack_function = cifra.attack.caesar.brute_force_mp
+    elif algorithm == Algorithm.affine:
+        attack_function = cifra.attack.affine.brute_force_mp
+    elif algorithm == Algorithm.substitution:
+        attack_function = cifra.attack.substitution.hack_substitution_mp
+    elif algorithm == Algorithm.transposition:
+        attack_function = cifra.attack.transposition.brute_force_mp
+    elif algorithm == Algorithm.vigenere:
+        attack_function = cifra.attack.vigenere.brute_force_mp
+    return attack_function
+
+
+def main(args=sys.argv[1:], _database_path=None) -> None:
     arguments: Dict[str, str] = parse_arguments(args)
 
     # DICTIONARY MANAGEMENT
     if arguments["mode"] == "dictionary":
         if arguments["action"] == "create":
             initial_words_file = arguments.get("initial_words_file", None)
-            with Dictionary.open(arguments["dictionary_name"], create=True, _database_path=database_path) as dictionary:
+            with Dictionary.open(arguments["dictionary_name"], create=True, _database_path=_database_path) as dictionary:
                 if initial_words_file is not None:
                     dictionary.populate(initial_words_file)
         elif arguments["action"] == "delete":
-            Dictionary.remove_dictionary(arguments["dictionary_name"], _database_path=database_path)
+            Dictionary.remove_dictionary(arguments["dictionary_name"], _database_path=_database_path)
         elif arguments["action"] == "update":
-            with Dictionary.open(arguments["dictionary_name"], create=False, _database_path=database_path) as dictionary:
+            with Dictionary.open(arguments["dictionary_name"], create=False,
+                                 _database_path=_database_path) as dictionary:
                 dictionary.populate(arguments["words_file"])
         elif arguments["action"] == "list":
-            dictionaries = Dictionary.get_available_languages(_database_path=database_path)
+            dictionaries = Dictionary.get_available_languages(_database_path=_database_path)
             for dictionary in dictionaries:
                 print(dictionary)
 
@@ -367,17 +408,18 @@ def main(args=sys.argv[1:], database_path=None) -> None:
     # DECIPHERING MANAGEMENT
     elif arguments["mode"] == "decipher":
         deciphered_content = _process_file_with_key(arguments["file_to_decipher"],
-                                                  Algorithm.from_string(arguments["algorithm"]),
-                                                  arguments["key"],
-                                                  MessageOperation.from_string(arguments["mode"]),
-                                                  arguments["charset"] if "charset" in arguments else None)
+                                                    Algorithm.from_string(arguments["algorithm"]),
+                                                    arguments["key"],
+                                                    MessageOperation.from_string(arguments["mode"]),
+                                                    arguments["charset"] if "charset" in arguments else None)
         _output_result(deciphered_content, arguments)
 
     # ATTACK MANAGEMENT
     elif arguments["mode"] == "attack":
         recovered_content = _attack_file(arguments["file_to_attack"],
                                          Algorithm.from_string(arguments["algorithm"]),
-                                         arguments["charset"] if "charset" in arguments else None)
+                                         arguments["charset"] if "charset" in arguments else None,
+                                         _database_path=_database_path)
         _output_result(recovered_content, arguments)
 
 
