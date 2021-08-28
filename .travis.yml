@@ -50,17 +50,17 @@ install:
   - pip install -r test-requirements.txt
 script:
   - pytest -v -rs -m $TEST_TAG -n auto
-allow_failures:
-  # Actually I only build with latest stable python release, but I want
-  # to be aware in advance if any dev python version is going to crash
-  # my future builds.
-  - python: nightly
 
 
 ################################
 # DEPLOYMENT
 ################################
 jobs:
+  allow_failures:
+    # Actually I only build with latest stable python release, but I want
+    # to be aware in advance if any dev python version is going to crash
+    # my future builds.
+    - python: nightly
   include:
   # Update master branch.
   - stage: Branch merge to production branch
