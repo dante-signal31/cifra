@@ -1,0 +1,124 @@
+################################
+# GENERAL CONFIGURATION
+################################
+language: python
+# We are going to need a full-VM to run docker containers inside.
+sudo: enabled
+dist: xenial
+group: travis_latest
+# Vdist needs docker enabled to work.
+services:
+- docker
+
+
+################################
+# TEST MATRIX
+################################
+python:
+- 3.8.11
+- nightly
+env:
+  matrix:
+   - TEST_TAG="quick_test"
+   - TEST_TAG="slow_test"
+
+matrix:
+  allow_failures:
+  # Actually I only build with latest stable python release, but I want
+  # to be aware in advance if any dev python version is going to crash
+  # my future builds.
+  - python: nightly
+
+
+################################
+# BRANCH FILTER
+################################
+branches:
+  only:
+  - staging
+
+
+################################
+# RESULT NOTIFICATIONS
+################################
+notifications:
+  recipients:
+  - dante.signal31@gmail.com
+  on_sucess: always
+  on_failure: always
+
+
+################################
+# TESTING
+################################
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libssl1.0.0 rpm
+install:
+  - pip install -r requirements.txt
+  - pip install -r test-requirements.txt
+script:
+  - pytest -v -rs -m $TEST_TAG -n auto
+
+
+
+################################
+# DEPLOYMENT
+################################
+jobs:
+  include:
+  # Update master branch.
+  - stage: Branch merge to production branch
+    python: 3.8
+    env:
+    - PYTHONPATH="${PYTHONPATH}:${TRAVIS_BUILD_DIR}"
+    if: branch = staging
+    script:
+    - echo "Merging staging branch with master..."
+    - chmod 755 ci_scripts/merge_with_production.py
+    - ci_scripts/merge_with_production.py
+    - echo "Merge done."
+  # Upload packages to Python Package Index.
+  - stage: Pypi deployment
+    python: 3.8
+    script: echo "Deploying to Python Package Index..."
+    deploy:
+    - provider: pypi
+      user: $PYPI_USERNAME
+      password: $PYPI_PASSWORD
+      distributions: "sdist bdist_wheel"
+      on:
+        branch: staging
+  # Build DEB and RPM packages and upload them to Github and Bintray.
+  - stage: System packages deployment
+    python: 3.8
+    if: branch = staging
+    script:
+      # Build manpage.
+      - echo "Building manpage..."
+      - sudo apt-get update
+      - sudo apt-get install pandoc
+      - mkdir man
+      # Remove badges strings from README to allow a clean conversion to man page.
+      - sed -i '/^\[\!\[/d' README.md
+      - pandoc --standalone --to man README.md -o man/steganer.1
+      - gzip man/cifra.1
+      - echo "Manpage built."
+      # Create script to setup links to executable at target host.
+      - chmod 755 ci_scripts/create_postinst_script.py
+      - ci_scripts/create_postinst_script.py
+      # Create deb and rpm packages.
+      - chmod 755 ci_scripts/build_system_packages.py
+      - travis_wait 20 ci_scripts/build_system_packages.py
+      # Setup tags to upload packages as a github release.
+      - chmod 755 ci_scripts/tag_release.py
+      - ci_scripts/tag_release.py
+    deploy:
+    # Github Releases.
+    - provider: releases
+      api_key: "${GITHUB_TOKEN}"
+      file_glob: true
+      file: package_dist/*
+      skip_cleanup: true
+      on:
+        all_branches: true
