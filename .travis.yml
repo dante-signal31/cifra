@@ -2,8 +2,7 @@
 # GENERAL CONFIGURATION
 ################################
 language: python
-# We are going to need a full-VM to run docker containers inside.
-sudo: enabled
+os: linux
 dist: xenial
 group: travis_latest
 # Vdist needs docker enabled to work.
@@ -18,7 +17,6 @@ python:
 - 3.8
 - nightly
 env:
-  matrix:
    - TEST_TAG="quick_test"
    - TEST_TAG="slow_test"
 
@@ -44,7 +42,7 @@ branches:
 notifications:
   recipients:
   - dante.signal31@gmail.com
-  on_sucess: always
+  on_success: always
   on_failure: always
 
 
