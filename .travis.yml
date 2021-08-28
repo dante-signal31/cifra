@@ -17,7 +17,6 @@ python:
 - 3.8
 - nightly
 env:
-  - CIFRA_DEBUG=1
   - TEST_TAG="quick_test"
   - TEST_TAG="slow_test"
 

@@ -9,8 +9,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import sessionmaker
 
+# Travis has CIFRA_DEBUG set to 1 through its GUI.
 if os.getenv("CIFRA_DEBUG", 0) == "1":
-    # TODO: Check Travis CI sets it corresponding CIFRA_DEBUG env var to 1.
     DATABASE_FILENAME = "cifra_database.sqlite"
 else:
     DATABASE_FILENAME = "~/.cifra/cifra_database.sqlite"

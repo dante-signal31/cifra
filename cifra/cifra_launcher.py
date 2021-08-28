@@ -32,13 +32,6 @@ import cifra.attack.vigenere
 from cifra.attack.dictionaries import Dictionary
 
 
-# if os.getenv("CIFRA_DEBUG", 0) == "1":
-#     # TODO: Check Travis CI sets it corresponding CIFRA_DEBUG env var to 1.
-#     DICTIONARY_FOLDER = tempfile.mkdtemp()
-# else:
-#     DICTIONARY_FOLDER = "~/.cifra/"
-
-
 class MessageOperation(Enum):
     """ Possible operations over text messages (bot ciphered and plain)."""
     cipher = auto()
