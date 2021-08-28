@@ -116,7 +116,8 @@ jobs:
     deploy:
     # Github Releases.
     - provider: releases
-      api_key: "${GITHUB_TOKEN}"
+      api_key:
+        secure: "muCjIvPRBBP+AUlaD8XXxNG6K8AX0I1/gsiliBHHVGeBx5+DJAwWJAc6x57+YLSi+zdxA65z/+IQRxThnDXYY4bmEEYt2w1Ayx7Hx7Y2j3ty6eOBYMW6zq64eU2wdaAbA2dWMNK5F/CaHqFIkHA7KPMljZQpzbEMgMrkge3/nSMScBFGsEOpUxJ4Z50qDxMuWTm+GbqNu7bUDWY5kcqROyMJoUU1AqPpDTJ5HjZNcedp2/sWNBbrCS0r9d3vc0JepMGjgk2dYSHmtAbMZjcsr6R7ECwkaTWb6WNZwiNkH7l89lk5AUruXW9Xs9ztD1wYTiW69ePf3dNdVyfNzbBIqsx8ly79gtbosf0zgUbjzq/o7TcfT4kGotzPamtoCV3bDoTPUt1mGilGoz3ReD6Y2Uqzl7ecgNpjW3zFeugW3G2deu/pyOr79xx+1viLlF2GtkoqYXUgcxZpDOYMneEW91JNdC4GafgASEqMslHMqsCWSjIVgfQ6AWo4LCHR2Y0/ns52khHd2d8sR+jNIK1uwZl0htbjD0KVewXF3yDHrMtjt6loBuzRA6Nj+Vyqu43qkLOfFGO4WrlesKCaaCCHrNBby8KgAfg3Lj6GMFVaCmpVWfrx1DgAt4MKN5/xCsYeJIwgE7NE7Qbtt77Mn/wua5ttGx8qHU4UQ+qKxG5+fs8="
       file_glob: true
       file: package_dist/*
       skip_cleanup: true
