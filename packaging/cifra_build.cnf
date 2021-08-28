@@ -19,9 +19,12 @@ after_remove = packaging/postuninst.sh
 
 [Ubuntu-package]
 profile = ubuntu-lts
+runtime_deps = sqlite3
 
 [Centos-package]
 profile = centos
+runtime_deps = sqlite3
 
 [Archlinux-package]
 profile = archlinux
+runtime_deps = sqlite3
