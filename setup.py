@@ -82,7 +82,7 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Unix',
         'Operating System :: POSIX',
-        'License :: OSI Approved :: BSD',
+        'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
     ],
