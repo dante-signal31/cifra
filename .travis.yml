@@ -13,12 +13,12 @@ services:
 ################################
 # TEST MATRIX
 ################################
-python:
-- 3.8
-- nightly
-env:
-  - TEST_TAG="quick_test"
-  - TEST_TAG="slow_test"
+#python:
+#- 3.8
+#- nightly
+#env:
+#  - TEST_TAG="quick_test"
+#  - TEST_TAG="slow_test"
 
 
 ################################
@@ -42,14 +42,14 @@ notifications:
 ################################
 # TESTING
 ################################
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libssl1.0.0 rpm sqlite
-install:
-  - pip install -r requirements.txt
-  - pip install -r test-requirements.txt
-script:
-  # Slow tests last longer than 10 minutes, so we need travis_wait.
+#before_install:
+#  - sudo apt-get update -qq
+#  - sudo apt-get install -qq libssl1.0.0 rpm sqlite
+#install:
+#  - pip install -r requirements.txt
+#  - pip install -r test-requirements.txt
+#script:
+#  # Slow tests last longer than 10 minutes, so we need travis_wait.
 #  - travis_wait 40 pytest -v -rs -m $TEST_TAG -n auto
 
 
@@ -57,11 +57,11 @@ script:
 # DEPLOYMENT
 ################################
 jobs:
-  allow_failures:
-    # Actually I only build with latest stable python release, but I want
-    # to be aware in advance if any dev python version is going to crash
-    # my future builds.
-    - python: nightly
+#  allow_failures:
+#    # Actually I only build with latest stable python release, but I want
+#    # to be aware in advance if any dev python version is going to crash
+#    # my future builds.
+#    - python: nightly
   include:
   # Update master branch.
   - stage: Branch merge to production branch
