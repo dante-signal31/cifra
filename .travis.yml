@@ -50,7 +50,7 @@ install:
   - pip install -r test-requirements.txt
 script:
   # Slow tests last longer than 10 minutes, so we need travis_wait.
-  - travis_wait 40 pytest -v -rs -m $TEST_TAG -n auto
+#  - travis_wait 40 pytest -v -rs -m $TEST_TAG -n auto
 
 
 ################################
@@ -101,14 +101,20 @@ jobs:
       - gzip man/cifra.1
       - echo "Manpage built."
       # Create script to setup links to executable at target host.
+      - echo "Creating packages post install scripts..."
       - chmod 755 ci_scripts/create_postinst_script.py
       - ci_scripts/create_postinst_script.py
+      - echo "Post install scripts created."
       # Create deb and rpm packages.
+      - echo "Building installer packages..."
       - chmod 755 ci_scripts/build_system_packages.py
       - travis_wait 20 ci_scripts/build_system_packages.py
+      - echo "Installer packages built."
       # Setup tags to upload packages as a github release.
+      - echo "Tagging release..."
       - chmod 755 ci_scripts/tag_release.py
       - ci_scripts/tag_release.py
+      - echo "Release tagged."
     deploy:
     # Github Releases.
     - provider: releases
