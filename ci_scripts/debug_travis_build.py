@@ -10,7 +10,7 @@ else:
 DEBUG_COMMAND = "curl -s -X POST -H \"Content-Type: application/json\"-H \"" \
                 "Accept: application/json\" -H \"Travis-API-Version: 3\" -H " \
                 "\"Authorization: token {token}\" -d \"{{\"quiet\": true}}\" " \
-                "https://api.travis-ci.org/job/{id}/debug"
+                "https://api.travis-ci.com/job/{id}/debug"
 
 
 def launch_debug_build(api_token, build_number):
