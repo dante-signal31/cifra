@@ -97,6 +97,7 @@ jobs:
       - mkdir man
       # Remove badges strings from README to allow a clean conversion to man page.
       - sed -i '/^\[\!\[/d' README.md
+      - mkdir man
       - pandoc --standalone --to man README.md -o man/cifra.1
       - gzip man/cifra.1
       - echo "Manpage built."
