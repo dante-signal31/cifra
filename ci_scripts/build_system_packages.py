@@ -6,7 +6,7 @@ import traceback
 if sys.version_info.major < 3:
     import ci_tools as tools
 else:
-    from ci_scripts import ci_tools as tools
+    import ci_tools as tools
 
 
 def install_vdist():
