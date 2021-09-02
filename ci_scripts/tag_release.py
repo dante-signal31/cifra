@@ -6,8 +6,8 @@ if sys.version_info.major < 3:
     import ci_tools as tools
     from .ci_constants import *
 else:
-    from ci_scripts import ci_tools as tools
-    from ci_scripts.ci_constants import *
+    import ci_tools as tools
+    from ci_constants import *
 
 
 def set_contact_data(username, email):

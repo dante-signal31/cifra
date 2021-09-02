@@ -94,7 +94,6 @@ jobs:
       - echo "Building manpage..."
       - sudo apt-get update
       - sudo apt-get install pandoc
-      - mkdir man
       # Remove badges strings from README to allow a clean conversion to man page.
       - sed -i '/^\[\!\[/d' README.md
       - mkdir man
