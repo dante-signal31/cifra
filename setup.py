@@ -71,10 +71,10 @@ setup(
     data_files=find_man_pages(),
     packages=find_packages(exclude=["tests", "integration-tests",
                                     "ci_scripts", "examples", "docs"]),
-    install_requires=[],
+    install_requires=['SQLAlchemy', 'pytest', 'test_common'],
     entry_points={'console_scripts': ['cifra=cifra.cifra_launcher:main', ], },
     package_data={'': []},
-    tests_require=['pytest'],
+    tests_require=['pytest', 'test_common'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
