@@ -130,7 +130,7 @@ Attack a ciphered text to get its plain text.
                          ijklmnopqrstuvwxyz1234567890 !?., but you can set here
                          another.
 
-# Algorithms
+# ALGORITHMS
 Currently these algorithms are available:
 
 * caesar
