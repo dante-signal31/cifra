@@ -1,6 +1,6 @@
 % cifra(1) | cifra usage documentation
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/dante-signal31/cifra)](https://github.com/dante-signal31/steganer/cifra)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/dante-signal31/cifra)](https://github.com/dante-signal31/cifra)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Travis (.org)](https://img.shields.io/travis/dante-signal31/cifra)](https://travis-ci.com/dante-signal31/cifra)
 [![GitHub issues](https://img.shields.io/github/issues/dante-signal31/cifra)](https://github.com/dante-signal31/cifra/issues)
@@ -15,7 +15,17 @@
 **cifra** is a console command and a python library to cipher and decipher texts
 using classic methods. It also performs cryptoattacks against those methods.
 
-I've implemented this while I read Al Sweigart's *"Cracking Codes with Python"*.
+I've implemented this while I read Al Sweigart's *"Cracking Codes with Python"*. While doing
+it I also developed and alternative [Rust implementation](https://github.com/dante-signal31/cifra-rust) 
+to assess implementations differences between Python and Rust. Structure of both implementations is almost 
+identical, so it is interesting to compare side-to-side functions of both implementation to realize how the 
+same things must be expressed in Python and Rust. 
+
+Some conclusions are evident: Python is extremely expressive and can implement in just few lines what Rust 
+requires many more; on the other hand Rust is extremely performant and can execute the same calculations 
+many times quicker than Python. However, I've found out a really useful conclusion: Python is a great 
+prototyping language for Rust, reflexion topics apart the vast majority of everything else that you can do 
+in Python can be easily implemented in Rust too. 
 
 # USAGE
 
