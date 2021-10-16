@@ -2,7 +2,7 @@
 Tests for cipher.substitution module.
 """
 import pytest
-import cipher.substitution as substitution
+import cifra.cipher.substitution as substitution
 
 TEST_CHARSET = "abcdefghijklmnopqrstuvwxyz"
 TEST_KEY =     "lfwoayuisvkmnxpbdcrjtqeghz"

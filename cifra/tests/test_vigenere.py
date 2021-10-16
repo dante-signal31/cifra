@@ -2,7 +2,7 @@
 Tests for cipher.vigenere module.
 """
 import pytest
-import cipher.vigenere as vigenere
+import cifra.cipher.vigenere as vigenere
 
 ORIGINAL_MESSAGE = "Common sense is not so common."
 CIPHERED_MESSAGE = "Rwlloc admst qr moi an bobunm."
