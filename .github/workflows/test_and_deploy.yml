@@ -1,4 +1,4 @@
-name: Test and deploy
+name: test_and_deploy
 
 # Controls when the workflow will run
 on:
